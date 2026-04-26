@@ -27,4 +27,10 @@ public class AuthController {
     public UserDto registerSeller(@RequestBody CreateUserDto request) {
         return authService.registerSeller(request);
     }
+
+    @PostMapping("/login")
+    public AuthResponseDto login(@RequestBody LoginDto request) {
+        return authService.login(request);
+    }
+
 }
