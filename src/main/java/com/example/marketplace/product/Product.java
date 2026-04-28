@@ -39,6 +39,12 @@ public class Product {
     private User seller;
 
     public Product(String title, BigDecimal price, Integer quantity, User seller) {
+        if (title == null || title.isBlank())
+            throw new IllegalArgumentException("Name is required");
+        if (price == null || price.compareTo(BigDecimal.ZERO) < 0)
+            throw new IllegalArgumentException("Incorrect price");
+        if (quantity == null || quantity < 0)
+            throw new IllegalArgumentException("The quantity cannot be negative");
         this.title = title;
         this.price = price;
         this.quantity = quantity;

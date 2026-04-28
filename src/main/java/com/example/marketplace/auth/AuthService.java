@@ -5,6 +5,8 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.example.marketplace.basket.Basket;
+import com.example.marketplace.basket.BasketRepository;
 import com.example.marketplace.security.JwtService;
 import com.example.marketplace.user.User;
 import com.example.marketplace.user.UserRepository;
@@ -17,14 +19,15 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
+    private final BasketRepository basketRepository;
 
     public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder,
-            AuthenticationManager authenticationManager, JwtService jwtService) {
+            AuthenticationManager authenticationManager, JwtService jwtService, BasketRepository basketRepository) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
         this.jwtService = jwtService;
-
+        this.basketRepository = basketRepository;
     }
 
     public UserDto registerSeller(CreateUserDto dto) {
@@ -42,6 +45,8 @@ public class AuthService {
         User buyer = User.registerBuyer(dto.getFirstName(), dto.getLastName(), dto.getEmail(), passwordHash);
         User savedBuyer = userRepository.save(buyer);
 
+        Basket basket = new Basket(savedBuyer);
+        basketRepository.save(basket);
         return mapToDto(savedBuyer);
     }
 

@@ -35,6 +35,11 @@ public class Basket {
     @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<BasketItem> items = new ArrayList<>();
 
+    public Basket(User buyer) {
+        this.buyer = buyer;
+
+    }
+
     public void addItem(Product product, Integer quantity) {
         for (BasketItem item : items) {
             if (item.getProduct().getId().equals(product.getId())) {
