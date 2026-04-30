@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.example.marketplace.basket.Basket;
-import com.example.marketplace.basketitem.BasketItem;
+import com.example.marketplace.basket.basketitem.BasketItem;
 import com.example.marketplace.product.Product;
 import com.example.marketplace.user.User;
 
@@ -34,7 +34,7 @@ public class Order {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "buyer")
+    @JoinColumn(name = "buyer_id")
     private User buyer;
 
     @Enumerated(EnumType.STRING)
@@ -42,7 +42,7 @@ public class Order {
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
     private List<OrderItem> items = new ArrayList<>();
-    private BigDecimal totalAmount;
+    private BigDecimal totalAmount = BigDecimal.ZERO;
 
     public Order(User buyer) {
         this.buyer = buyer;

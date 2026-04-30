@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.example.marketplace.basketitem.BasketItem;
+import com.example.marketplace.basket.basketitem.BasketItem;
 import com.example.marketplace.product.Product;
 import com.example.marketplace.user.User;
 
@@ -37,8 +37,6 @@ public class Basket {
     @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<BasketItem> items = new ArrayList<>();
 
-    private BigDecimal totalCost;
-
     public Basket(User buyer) {
         this.buyer = buyer;
 
@@ -63,5 +61,13 @@ public class Basket {
         return items.stream()
                 .map(item -> item.getProduct().getPrice().multiply(BigDecimal.valueOf(item.getQuantity())))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    public void deleteProductItem(Long productId) {
+        boolean delete = this.items.removeIf(item -> item.getProduct().getId().equals(productId));
+
+        if (!delete) {
+            throw new IllegalArgumentException("The product was not found in the basket");
+        }
     }
 }

@@ -1,4 +1,4 @@
-package com.example.marketplace.basketitem;
+package com.example.marketplace.basket.basketitem;
 
 import com.example.marketplace.basket.Basket;
 import com.example.marketplace.product.Product;
