@@ -2,6 +2,7 @@ package com.example.marketplace.basket;
 
 import org.springframework.stereotype.Service;
 
+import com.example.marketplace.basket.dto.BasketDto;
 import com.example.marketplace.product.Product;
 import com.example.marketplace.product.ProductRepository;
 
@@ -25,4 +26,5 @@ public class BasketService {
         basket.addItem(product, quantity);
         basketRepository.save(basket);
     }
+
 }

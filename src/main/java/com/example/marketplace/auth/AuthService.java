@@ -4,6 +4,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.example.marketplace.basket.Basket;
 import com.example.marketplace.basket.BasketRepository;
@@ -30,6 +31,7 @@ public class AuthService {
         this.basketRepository = basketRepository;
     }
 
+    @Transactional
     public UserDto registerSeller(CreateUserDto dto) {
         String passwordHash = passwordEncoder.encode(dto.getPassword());
 
@@ -39,6 +41,7 @@ public class AuthService {
         return mapToDto(savedUser);
     }
 
+    @Transactional
     public UserDto registerBuyer(CreateUserDto dto) {
         String passwordHash = passwordEncoder.encode(dto.getPassword());
 

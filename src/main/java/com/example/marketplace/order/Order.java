@@ -44,4 +44,20 @@ public class Order {
     private List<OrderItem> items = new ArrayList<>();
     private BigDecimal totalAmount;
 
+    public Order(User buyer) {
+        this.buyer = buyer;
+    }
+
+    public void addToOrder(Integer quantity, Product product) {
+        OrderItem item = new OrderItem(quantity, product, this);
+        this.items.add(item);
+
+        BigDecimal sum = item.getPriceAtPurchase().multiply(BigDecimal.valueOf(quantity));
+        this.totalAmount = this.totalAmount.add(sum);
+
+    }
+
+    public void changeStatus(OrderStatus requestStatus) {
+        this.status = requestStatus;
+    }
 }
