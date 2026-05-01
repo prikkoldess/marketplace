@@ -3,6 +3,7 @@ package com.example.marketplace.order;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import com.example.marketplace.basket.Basket;
 import com.example.marketplace.basket.basketitem.BasketItem;
@@ -10,6 +11,7 @@ import com.example.marketplace.product.Product;
 import com.example.marketplace.user.User;
 
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -37,6 +39,9 @@ public class Order {
     @JoinColumn(name = "buyer_id")
     private User buyer;
 
+    @Column(name = "checkout_group_id")
+    private UUID checkoutGroupId;
+
     @Enumerated(EnumType.STRING)
     private OrderStatus status = OrderStatus.CREATED;
 
@@ -55,6 +60,10 @@ public class Order {
         BigDecimal sum = item.getPriceAtPurchase().multiply(BigDecimal.valueOf(quantity));
         this.totalAmount = this.totalAmount.add(sum);
 
+    }
+
+    public void setCheckoutGroupId(UUID checkoutGroupId) {
+        this.checkoutGroupId = checkoutGroupId;
     }
 
     public void changeStatus(OrderStatus requestStatus) {

@@ -68,6 +68,15 @@ public class Product {
         this.status = ProductStatus.ACTIVE;
     }
 
+    public void decreaseQuantity(Integer amount) {
+        if (amount == null || amount <= 0)
+            throw new IllegalArgumentException("Amount must be positive");
+        if (this.quantity < amount) {
+            throw new IllegalStateException("Not enough stock");
+        }
+        this.quantity -= amount;
+    }
+
     public void updateProduct(Integer quantity, BigDecimal price) {
 
         if (quantity != null) {

@@ -34,7 +34,7 @@ public class Basket {
     @JoinColumn(name = "buyer_id", unique = true)
     private User buyer;
 
-    @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "basket", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<BasketItem> items = new ArrayList<>();
 
     public Basket(User buyer) {

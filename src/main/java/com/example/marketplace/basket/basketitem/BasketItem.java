@@ -26,8 +26,8 @@ public class BasketItem {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "cart_id")
-    private Basket cart;
+    @JoinColumn(name = "basket_id")
+    private Basket basket;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id")
@@ -35,11 +35,11 @@ public class BasketItem {
 
     private Integer quantity;
 
-    public BasketItem(Basket cart, Product product, Integer quantity) {
+    public BasketItem(Basket basket, Product product, Integer quantity) {
         if (quantity <= 0) {
             throw new IllegalArgumentException("The quantity must be greater than zero.");
         }
-        this.cart = cart;
+        this.basket = basket;
         this.product = product;
         this.quantity = quantity;
     }
@@ -48,6 +48,6 @@ public class BasketItem {
         if (amount <= 0) {
             throw new IllegalArgumentException("Cannot add a negative or zero quantity.");
         }
-        this.quantity += quantity;
+        this.quantity += amount;
     }
 }
