@@ -60,14 +60,24 @@ public class ProductService {
         productRepository.save(product);
     }
 
-    public List<ProductDto> getAllProduct() {
-        return productRepository.findByStatus(ProductStatus.ACTIVE).stream()
+    public List<ProductDto> getAllSellerProduct(Long sellerId) {
+
+        return productRepository.findBySellerId(sellerId)
+                .stream()
+                .map(this::mapToDto)
+                .toList();
+    }
+
+    public List<ProductDto> getAllProducts() {
+        return productRepository.findByStatus(ProductStatus.ACTIVE)
+                .stream()
                 .map(this::mapToDto)
                 .toList();
     }
 
     private ProductDto mapToDto(Product product) {
         ProductDto dto = new ProductDto();
+        dto.setId(product.getId());
         dto.setTitle(product.getTitle());
         dto.setQuantity(product.getQuantity());
         dto.setPrice(product.getPrice());

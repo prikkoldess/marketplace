@@ -65,7 +65,12 @@ public class SecurityConfig {
 
                         .requestMatchers("/auth/**").permitAll()
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
-
+                        .requestMatchers("/error").permitAll()
+                        .requestMatchers("/products/seller/**").hasRole("SELLER")
+                        .requestMatchers("/products/buyer/**").hasRole("BUYER")
+                        .requestMatchers("/basket/buyer/**").hasRole("BUYER")
+                        .requestMatchers("/orders/buyer/**").hasRole("BUYER")
+                        .requestMatchers("/orders/seller/**").hasRole("SELLER")
                         .anyRequest().authenticated())
 
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

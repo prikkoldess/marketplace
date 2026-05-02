@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.example.marketplace.basket.basketitem.BasketItem;
+import com.example.marketplace.basket.basketItem.BasketItem;
 import com.example.marketplace.product.Product;
 import com.example.marketplace.user.User;
 

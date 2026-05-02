@@ -2,6 +2,7 @@ package com.example.marketplace;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -15,6 +16,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.example.marketplace.auth.AuthService;
+import com.example.marketplace.basket.Basket;
+import com.example.marketplace.basket.BasketRepository;
 import com.example.marketplace.user.Role;
 import com.example.marketplace.user.Status;
 import com.example.marketplace.user.User;
@@ -27,6 +30,9 @@ public class AuthServiceTest {
 
     @Mock
     UserRepository repository;
+
+    @Mock
+    BasketRepository basketRepository;
 
     @Mock
     PasswordEncoder passwordEncoder;
@@ -73,12 +79,13 @@ public class AuthServiceTest {
 
         when(passwordEncoder.encode("buyerpass")).thenReturn("encoded_pass");
         when(repository.save(any(User.class))).thenAnswer(i -> i.getArgument(0));
-
+        when(basketRepository.save(any(Basket.class))).thenAnswer(i -> i.getArgument(0));
         UserDto result = authService.registerBuyer(buyer);
 
         assertEquals("Ben", result.getFirstName());
         assertEquals("Jones", result.getLastName());
         assertEquals("buyer@gmail.com", result.getEmail());
+        verify(basketRepository, times(1)).save(any(Basket.class));
         verify(repository).save(usercaptor.capture());
 
         User savedBuyer = usercaptor.getValue();

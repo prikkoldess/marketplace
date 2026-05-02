@@ -1,5 +1,8 @@
 package com.example.marketplace.auth;
 
+import lombok.Data;
+
+@Data
 public class AuthResponseDto {
     private String token;
 

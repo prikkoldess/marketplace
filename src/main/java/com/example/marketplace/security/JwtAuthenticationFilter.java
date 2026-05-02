@@ -51,7 +51,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             if (userId != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 
-                if (jwtService.isTokenExpired(claims)) {
+                if (!jwtService.isTokenExpired(claims)) {
                     Optional<User> optionalUser = repository.findById(userId);
                     if (optionalUser.isPresent()) {
                         User user = optionalUser.get();

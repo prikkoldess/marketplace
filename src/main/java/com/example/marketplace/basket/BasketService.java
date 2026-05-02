@@ -5,7 +5,6 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.example.marketplace.basket.basketitem.BasketItem;
 import com.example.marketplace.basket.dto.BasketDto;
 import com.example.marketplace.basket.dto.BasketItemDto;
 

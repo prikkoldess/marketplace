@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 
 import com.example.marketplace.user.User;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -28,7 +29,9 @@ public class Product {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String title;
+    @Column(precision = 19, scale = 2, nullable = false)
     private BigDecimal price;
+
     private Integer quantity;
 
     @Enumerated(EnumType.STRING)

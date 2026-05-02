@@ -1,4 +1,4 @@
-package com.example.marketplace.basket.basketitem;
+package com.example.marketplace.basket.basketItem;
 
 import com.example.marketplace.basket.Basket;
 import com.example.marketplace.product.Product;
@@ -16,7 +16,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "items")
+@Table(name = "basket_items")
 @NoArgsConstructor
 @Getter
 @Setter

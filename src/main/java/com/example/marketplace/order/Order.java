@@ -5,8 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import com.example.marketplace.basket.Basket;
-import com.example.marketplace.basket.basketitem.BasketItem;
+import com.example.marketplace.order.orderItem.OrderItem;
 import com.example.marketplace.product.Product;
 import com.example.marketplace.user.User;
 
@@ -47,6 +46,7 @@ public class Order {
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
     private List<OrderItem> items = new ArrayList<>();
+    @Column(name = "total_amount", precision = 19, scale = 2)
     private BigDecimal totalAmount = BigDecimal.ZERO;
 
     public Order(User buyer) {

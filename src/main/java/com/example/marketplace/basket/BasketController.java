@@ -1,17 +1,17 @@
 package com.example.marketplace.basket;
 
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.example.marketplace.basket.dto.BasketDto;
 import com.example.marketplace.security.UserPrincipal;
 
-@Controller
+@RestController
 @RequestMapping("basket")
 public class BasketController {
     private final BasketService basketService;

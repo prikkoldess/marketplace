@@ -1,10 +1,12 @@
-package com.example.marketplace.order;
+package com.example.marketplace.order.orderItem;
 
 import java.math.BigDecimal;
 
+import com.example.marketplace.order.Order;
 import com.example.marketplace.product.Product;
 import com.example.marketplace.user.User;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -29,6 +31,7 @@ public class OrderItem {
     private Long id;
 
     private Integer quantity;
+    @Column(name = "price_at_purchase", precision = 19, scale = 2, nullable = false)
     private BigDecimal priceAtPurchase;
 
     @ManyToOne(fetch = FetchType.LAZY)

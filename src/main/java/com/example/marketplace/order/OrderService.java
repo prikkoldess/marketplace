@@ -12,7 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.example.marketplace.basket.Basket;
 import com.example.marketplace.basket.BasketRepository;
-import com.example.marketplace.basket.basketitem.BasketItem;
+import com.example.marketplace.basket.basketItem.BasketItem;
 import com.example.marketplace.order.dto.CheckoutGroupDto;
 import com.example.marketplace.order.dto.OrderDto;
 import com.example.marketplace.order.dto.OrderItemDto;
@@ -93,13 +93,28 @@ public class OrderService {
                 .toList();
     }
 
+    public List<CheckoutGroupDto> getBuyerOrders(Long buyerId) {
+        List<Order> order = orderRepository.findByBuyerId(buyerId);
+
+        Map<UUID, List<Order>> groupedOrders = order
+                .stream()
+                .collect(Collectors.groupingBy(Order::getCheckoutGroupId));
+
+        return groupedOrders.entrySet()
+                .stream()
+                .map(entry -> mapToBuyerDto(entry.getValue(), entry.getKey()))
+                .toList();
+    }
+
     public OrderDto mapToDto(Order order) {
         OrderDto dto = new OrderDto();
         dto.setId(order.getId());
         List<OrderItemDto> itemDtos = order.getItems().stream().map(item -> {
             OrderItemDto itemDto = new OrderItemDto();
-            itemDto.setProductId(item.getProduct().getId());
-            itemDto.setProductTitle(item.getProduct().getTitle());
+            Product product = item.getProduct();
+
+            itemDto.setProductId(product.getId());
+            itemDto.setProductTitle(product.getTitle());
             itemDto.setQuantity(item.getQuantity());
             itemDto.setPriceAtPurchase(item.getPriceAtPurchase());
             return itemDto;
