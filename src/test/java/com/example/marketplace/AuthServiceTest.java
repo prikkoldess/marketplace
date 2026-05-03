@@ -76,10 +76,10 @@ public class AuthServiceTest {
         buyer.setFirstName("Ben");
         buyer.setLastName("Jones");
         buyer.setPassword("buyerpass");
-
         when(passwordEncoder.encode("buyerpass")).thenReturn("encoded_pass");
         when(repository.save(any(User.class))).thenAnswer(i -> i.getArgument(0));
         when(basketRepository.save(any(Basket.class))).thenAnswer(i -> i.getArgument(0));
+
         UserDto result = authService.registerBuyer(buyer);
 
         assertEquals("Ben", result.getFirstName());

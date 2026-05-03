@@ -73,4 +73,14 @@ public class ProductTest {
         product.unlockProduct();
         assertEquals(ProductStatus.ACTIVE, product.getStatus());
     }
+
+    @Test
+    void decreaseQuantity() {
+        User user = new User();
+        user.setId(1L);
+        Product product = new Product("Apple", new BigDecimal("30"), 20, user);
+        product.decreaseQuantity(10);
+        assertEquals(10, product.getQuantity());
+
+    }
 }
