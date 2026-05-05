@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.example.marketplace.product.Product;
+import com.example.marketplace.wishlist.Wishlist;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -42,6 +43,9 @@ public class User {
     @OneToMany(mappedBy = "seller", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Product> products = new ArrayList<>();
 
+    @OneToMany(mappedBy = "buyer", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Wishlist> wishlistItems = new ArrayList<>();
+
     public User(String firstName, String lastName, Role role, Status status, String email, String password) {
         this.firstName = firstName;
         this.lastName = lastName;
@@ -69,4 +73,22 @@ public class User {
                 password);
     }
 
+    public void addToWishlist(Product product) {
+        boolean exist = this.wishlistItems.stream().anyMatch(item -> item.getProduct().getId().equals(product.getId()));
+
+        if (exist) {
+            throw new IllegalStateException("The product is already in your favorites");
+        }
+
+        Wishlist newItem = new Wishlist(this, product);
+        this.wishlistItems.add(newItem);
+    }
+
+    public void removeFromWishlist(Product product) {
+        boolean remove = this.wishlistItems.removeIf(items -> items.getProduct().getId().equals(product.getId()));
+
+        if (!remove) {
+            throw new IllegalArgumentException("The product was not found in your wishlist");
+        }
+    }
 }

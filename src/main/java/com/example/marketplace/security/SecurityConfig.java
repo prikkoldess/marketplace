@@ -71,6 +71,8 @@ public class SecurityConfig {
                         .requestMatchers("/basket/buyer/**").hasRole("BUYER")
                         .requestMatchers("/orders/buyer/**").hasRole("BUYER")
                         .requestMatchers("/orders/seller/**").hasRole("SELLER")
+                        .requestMatchers("/wishlists/buyer/**").hasRole("BUYER")
+                        .requestMatchers("/users/buyer/**").hasRole("BUYER")
                         .anyRequest().authenticated())
 
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
