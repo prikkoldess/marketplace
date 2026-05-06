@@ -33,4 +33,9 @@ public class AuthController {
         return authService.login(request);
     }
 
+    @PostMapping("/register/admin")
+    public UserDto registerAdmin(@RequestBody CreateUserDto request) {
+        return authService.registerAdmin(request);
+    }
+
 }
