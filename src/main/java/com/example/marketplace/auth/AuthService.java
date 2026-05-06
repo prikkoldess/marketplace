@@ -42,6 +42,16 @@ public class AuthService {
     }
 
     @Transactional
+    public UserDto registerAdmin(CreateUserDto dto) {
+        String passwordHash = passwordEncoder.encode(dto.getPassword());
+
+        User admin = User.registerAdmin(dto.getFirstName(), dto.getLastName(), dto.getEmail(), passwordHash);
+        User savedAdmin = userRepository.save(admin);
+
+        return mapToDto(savedAdmin);
+    }
+
+    @Transactional
     public UserDto registerBuyer(CreateUserDto dto) {
         String passwordHash = passwordEncoder.encode(dto.getPassword());
 

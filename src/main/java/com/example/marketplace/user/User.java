@@ -73,8 +73,18 @@ public class User {
                 password);
     }
 
+    public static User registerAdmin(String firstName, String lastName, String email, String password) {
+        return new User(firstName,
+                lastName,
+                Role.ADMIN,
+                Status.ACTIVE,
+                email,
+                password);
+    }
+
     public void addToWishlist(Product product) {
-        boolean exist = this.wishlistItems.stream().anyMatch(item -> item.getProduct().getId().equals(product.getId()));
+        boolean exist = this.wishlistItems.stream()
+                .anyMatch(item -> item.getProduct().getId().equals(product.getId()));
 
         if (exist) {
             throw new IllegalStateException("The product is already in your favorites");
@@ -85,10 +95,26 @@ public class User {
     }
 
     public void removeFromWishlist(Product product) {
-        boolean remove = this.wishlistItems.removeIf(items -> items.getProduct().getId().equals(product.getId()));
+        boolean remove = this.wishlistItems.removeIf(items -> items.getProduct()
+                .getId()
+                .equals(product.getId()));
 
         if (!remove) {
             throw new IllegalArgumentException("The product was not found in your wishlist");
         }
+    }
+
+    public void blockUser(User user) {
+        if (this.status == Status.BLOCKED) {
+            throw new IllegalArgumentException("User is already blocked");
+        }
+        this.status = Status.BLOCKED;
+    }
+
+    public void activateUser() {
+        if (this.status == Status.ACTIVE) {
+            throw new IllegalStateException("User is already active");
+        }
+        this.status = Status.ACTIVE;
     }
 }

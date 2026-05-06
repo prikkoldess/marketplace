@@ -1,15 +1,10 @@
 package com.example.marketplace.user;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.marketplace.product.Product;
 import com.example.marketplace.product.ProductRepository;
-import com.example.marketplace.wishlist.Wishlist;
-import com.example.marketplace.wishlist.WishlistDto;
 
 @Service
 public class UserService {
@@ -41,10 +36,25 @@ public class UserService {
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
         Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+                .orElseThrow(() -> new IllegalArgumentException("Product not found"));
 
         buyer.removeFromWishlist(product);
 
     }
 
+    @Transactional
+    public void blockUser(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        user.blockUser(user);
+    }
+
+    @Transactional
+    public void activateUser(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        user.activateUser();
+    }
 }
