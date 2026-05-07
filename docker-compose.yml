@@ -27,6 +27,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      rabbitmq:
+        condition: service_started
     environment:
 
       SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
@@ -36,8 +38,31 @@ services:
       SPRING_JPA_SHOW_SQL: "true"
       JWT_SECRET_KEY: ${JWT_SECRET_KEY}
       TZ: Europe/Kyiv
+
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_MAIL_HOST: mailhog
+      SPRING_MAIL_PORT: 1025
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH: "false"
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE: "false"
     ports:
       - "8080:8080"
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+
+  mailhog:
+    image: mailhog/mailhog
+    container_name: mailhog
+    ports:
+      - "1025:1025"
+      - "8025:8025"
 
 volumes:
   marketplace-postgres_data:
