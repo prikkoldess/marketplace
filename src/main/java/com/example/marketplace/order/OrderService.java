@@ -57,10 +57,11 @@ public class OrderService {
             sellerOrder.setCheckoutGroupId(currentCheckoutGroupId);
 
             for (BasketItem basketItem : sellerItems) {
-                Product product = basketItem.getProduct();
+                Product lockedProduct = productRepository.findByIdWithLock(basketItem.getProduct().getId())
+                        .orElseThrow(() -> new IllegalArgumentException("Product not found"));
 
-                product.decreaseQuantity(basketItem.getQuantity());
-                sellerOrder.addToOrder(basketItem.getQuantity(), product);
+                lockedProduct.decreaseQuantity(basketItem.getQuantity());
+                sellerOrder.addToOrder(basketItem.getQuantity(), lockedProduct);
 
             }
 
@@ -70,6 +71,7 @@ public class OrderService {
         basket.clearBasket();
     }
 
+    @Transactional
     public void updateOrderStatus(OrderStatus newStatus, Long orderId, Long sellerId) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new IllegalArgumentException("Order not found"));
@@ -81,6 +83,15 @@ public class OrderService {
         if (!isOwner) {
             throw new SecurityException("You can only update your own orders");
         }
+
+        order.changeStatus(newStatus);
+
+    }
+
+    @Transactional
+    public void updateOrderStatusForAdmin(OrderStatus newStatus, Long orderId, Long sellerId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new IllegalArgumentException("Order not found"));
 
         order.changeStatus(newStatus);
 
@@ -151,12 +162,12 @@ public class OrderService {
         boolean allCancelled = orders.stream().allMatch(o -> o.getStatus() == OrderStatus.CANCELLED);
         boolean anyCancelled = orders.stream().anyMatch(o -> o.getStatus() == OrderStatus.CANCELLED);
 
-        if (anyCancelled)
-            return "There are cancelled positions";
-        if (allDelivered)
-            return "Delivered";
         if (allCancelled)
             return "Cancelled";
+        if (allDelivered)
+            return "Delivered";
+        if (anyCancelled)
+            return "There are cancelled positions";
         if (anyShipped)
             return "Partially sent";
         return "In Processing / Being Collected";

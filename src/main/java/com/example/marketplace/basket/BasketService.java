@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.marketplace.basket.dto.AdminBasketDto;
 import com.example.marketplace.basket.dto.BasketDto;
 import com.example.marketplace.basket.dto.BasketItemDto;
 
@@ -38,6 +39,13 @@ public class BasketService {
         return mapToDto(basket);
     }
 
+    public AdminBasketDto getUserBasketForAdmin(Long userId) {
+        Basket user = basketRepository.findByBuyerId(userId)
+                .orElseThrow(() -> new IllegalArgumentException("Basket not found"));
+        return mapToAdminDto(user);
+
+    }
+
     @Transactional
     public void deleteProductItem(Long buyerId, Long productId) {
         Basket basket = basketRepository.findByBuyerId(buyerId)
@@ -64,5 +72,24 @@ public class BasketService {
         dto.setBasketItems(itemDtos);
         dto.setTotalCost(basket.totalCost());
         return dto;
+    }
+
+    private AdminBasketDto mapToAdminDto(Basket basket) {
+        List<BasketItemDto> itemDtos = basket.getItems().stream().map(item -> {
+            BasketItemDto itemDto = new BasketItemDto();
+            Product product = item.getProduct();
+
+            itemDto.setProductId(product.getId());
+            itemDto.setProductTitle(product.getTitle());
+            itemDto.setPrice(product.getPrice());
+            itemDto.setQuantity(item.getQuantity());
+
+            return itemDto;
+        }).toList();
+
+        return new AdminBasketDto(
+                basket.getBuyer(),
+                itemDtos,
+                basket.totalCost());
     }
 }

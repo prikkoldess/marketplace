@@ -28,7 +28,7 @@ public class BasketController {
         basketService.addToBasket(buyerId, product, quantity);
     }
 
-    @GetMapping("/buyer/prodacts")
+    @GetMapping("/buyer/products")
     public BasketDto getBuyerBasket(@AuthenticationPrincipal UserPrincipal buyer) {
         Long buyerId = buyer.getId();
         return basketService.getBuyerBasket(buyerId);
