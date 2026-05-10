@@ -24,6 +24,7 @@ import com.example.marketplace.order.Order;
 import com.example.marketplace.order.OrderRepository;
 import com.example.marketplace.order.OrderService;
 import com.example.marketplace.order.OrderStatus;
+import com.example.marketplace.order.dto.OrderDto;
 import com.example.marketplace.product.Product;
 import com.example.marketplace.product.ProductRepository;
 import com.example.marketplace.user.User;
@@ -84,18 +85,26 @@ public class OrderServiceTest {
     void getSellerOrders() {
         Long sellerId = 1L;
         Long orderId = 10L;
+        Long productId = 99L;
         User seller = mock(User.class);
+
         Product product = new Product("Apple", new BigDecimal("100.00"), 2, seller);
+        Product spyProduct = spy(product);
+        when(spyProduct.getId()).thenReturn(productId);
         Order order = new Order(seller);
         Order spyOrder = spy(order);
         when(spyOrder.getId()).thenReturn(orderId);
-        spyOrder.addToOrder(2, product);
+        spyOrder.addToOrder(2, spyProduct);
+
         when(orderRepository.findOrdersBySellerId(sellerId)).thenReturn(List.of(spyOrder));
 
-        orderService.getSellerOrders(sellerId);
+        List<OrderDto> resultList = orderService.getSellerOrders(sellerId);
+        assertEquals(1, resultList.size());
 
-        assertEquals(1, order.getItems().size());
-        assertEquals(sellerId, order.getItems().get(0).getProduct().getSeller());
+        OrderDto resultDto = resultList.get(0);
+
+        assertEquals(orderId, resultDto.getId());
+        assertEquals(1, resultDto.getItems().size());
 
     }
 }

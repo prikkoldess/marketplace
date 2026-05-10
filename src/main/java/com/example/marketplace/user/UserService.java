@@ -47,7 +47,7 @@ public class UserService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
-        user.blockUser(user);
+        user.blockUser();
     }
 
     @Transactional

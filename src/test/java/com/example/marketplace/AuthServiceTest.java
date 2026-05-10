@@ -96,4 +96,26 @@ public class AuthServiceTest {
 
         verify(passwordEncoder).encode("buyerpass");
     }
+
+    @Test
+    void registerAdmin() {
+        CreateUserDto dto = new CreateUserDto();
+        dto.setFirstName("Jon");
+        dto.setLastName("Derek");
+        dto.setEmail("admin@gmail.com");
+        dto.setPassword("adminpass");
+        when(passwordEncoder.encode("adminpass")).thenReturn("encoded_pass");
+        when(repository.save(any(User.class))).thenAnswer(i -> i.getArgument(0));
+        UserDto user = authService.registerAdmin(dto);
+
+        assertEquals("admin@gmail.com", user.getEmail());
+        assertEquals("Jon", user.getFirstName());
+        verify(repository).save(usercaptor.capture());
+
+        User savedAdmin = usercaptor.getValue();
+
+        assertEquals(Role.ADMIN, savedAdmin.getRole());
+        assertEquals(Status.ACTIVE, savedAdmin.getStatus());
+        assertEquals("encoded_pass", savedAdmin.getPassword());
+    }
 }

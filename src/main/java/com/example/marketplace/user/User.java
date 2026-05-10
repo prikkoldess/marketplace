@@ -33,7 +33,7 @@ public class User {
     @Enumerated(EnumType.STRING)
     private Role role;
     @Enumerated(EnumType.STRING)
-    private Status status;
+    private Status status = Status.ACTIVE;
 
     @Column(unique = true, nullable = false)
     private String email;
@@ -46,11 +46,10 @@ public class User {
     @OneToMany(mappedBy = "buyer", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Wishlist> wishlistItems = new ArrayList<>();
 
-    public User(String firstName, String lastName, Role role, Status status, String email, String password) {
+    public User(String firstName, String lastName, Role role, String email, String password) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.role = role;
-        this.status = status;
         this.email = email;
         this.password = password;
     }
@@ -59,7 +58,6 @@ public class User {
         return new User(firstName,
                 lastName,
                 Role.SELLER,
-                Status.ACTIVE,
                 email,
                 password);
     }
@@ -68,7 +66,6 @@ public class User {
         return new User(firstName,
                 lastName,
                 Role.BUYER,
-                Status.ACTIVE,
                 email,
                 password);
     }
@@ -77,7 +74,6 @@ public class User {
         return new User(firstName,
                 lastName,
                 Role.ADMIN,
-                Status.ACTIVE,
                 email,
                 password);
     }
@@ -104,7 +100,7 @@ public class User {
         }
     }
 
-    public void blockUser(User user) {
+    public void blockUser() {
         if (this.status == Status.BLOCKED) {
             throw new IllegalArgumentException("User is already blocked");
         }
