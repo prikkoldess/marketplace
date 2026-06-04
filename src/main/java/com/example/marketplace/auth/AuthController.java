@@ -5,6 +5,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.marketplace.user.dto.CreateBuyerDto;
 import com.example.marketplace.user.dto.CreateUserDto;
 import com.example.marketplace.user.dto.UserDto;
 
@@ -19,7 +20,7 @@ public class AuthController {
     }
 
     @PostMapping("/register/buyer")
-    public UserDto registerBuyer(@RequestBody CreateUserDto request) {
+    public UserDto registerBuyer(@RequestBody CreateBuyerDto request) {
         return authService.registerBuyer(request);
     }
 
