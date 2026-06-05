@@ -4,16 +4,17 @@ import com.example.marketplace.security.UserPrincipal;
 
 import java.util.List;
 
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
-
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.marketplace.product.dto.ProductCreateDto;
@@ -22,6 +23,7 @@ import com.example.marketplace.product.dto.ProductUpdateDto;
 
 @RestController
 @RequestMapping("/products")
+@EnableMethodSecurity
 public class ProductController {
     private final ProductService productService;
 
@@ -29,39 +31,44 @@ public class ProductController {
         this.productService = productService;
     }
 
-    @PostMapping("/seller/create")
+    @PostMapping
+    @PreAuthorize("hasRole('SELLER')")
     public ProductDto createProduct(@RequestBody ProductCreateDto request,
             @AuthenticationPrincipal UserPrincipal seller) {
         Long sellerId = seller.getId();
         return productService.createProduct(request, sellerId);
     }
 
-    @PutMapping("/seller/hide")
-    private void hideProduct(@RequestParam Long id, @AuthenticationPrincipal UserPrincipal seller) {
+    @PutMapping("/{id}/hide")
+    @PreAuthorize("hasRole('SELLER')")
+    public void hideProduct(@PathVariable Long id, @AuthenticationPrincipal UserPrincipal seller) {
         Long sellerId = seller.getId();
         productService.hideProduct(id, sellerId);
     }
 
-    @PatchMapping("/seller/product/update")
-    public ProductDto updateProduct(@RequestParam Long id, @AuthenticationPrincipal UserPrincipal seller,
+    @PatchMapping("/{id}")
+    @PreAuthorize("hasRole('SELLER')")
+    public ProductDto updateProduct(@PathVariable Long id, @AuthenticationPrincipal UserPrincipal seller,
             @RequestBody ProductUpdateDto dto) {
         Long sellerId = seller.getId();
         return productService.updateProduct(id, sellerId, dto);
     }
 
-    @GetMapping("/buyer/all-products")
+    @GetMapping
     public List<ProductDto> getAllProduct() {
         return productService.getAllProducts();
     }
 
-    @GetMapping("/seller/all-products")
+    @GetMapping("/my")
+    @PreAuthorize("hasRole('SELLER')")
     public List<ProductDto> getAllSellerProduct(@AuthenticationPrincipal UserPrincipal principal) {
         Long sellerId = principal.getId();
         return productService.getAllSellerProduct(sellerId);
     }
 
-    @PostMapping("/seller/product/unlock")
-    public void unlockProduct(@RequestParam Long id, @AuthenticationPrincipal UserPrincipal seller) {
+    @PostMapping("/{id}/unlock")
+    @PreAuthorize("hasRole('SELLER')")
+    public void unlockProduct(@PathVariable Long id, @AuthenticationPrincipal UserPrincipal seller) {
         Long sellerId = seller.getId();
         productService.unlockProduct(id, sellerId);
     }

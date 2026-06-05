@@ -2,6 +2,7 @@ package com.example.marketplace.order;
 
 import java.util.List;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -21,19 +22,22 @@ public class OrderController {
         this.orderService = orderService;
     }
 
-    @PostMapping("/buyer/order")
-    public void createOrder(@AuthenticationPrincipal com.example.marketplace.security.UserPrincipal buyer) {
+    @PostMapping
+    @PreAuthorize("hasRole('SELLER')")
+    public void placeOrder(@AuthenticationPrincipal com.example.marketplace.security.UserPrincipal buyer) {
         Long buyerId = buyer.getId();
-        orderService.createOrder(buyerId);
+        orderService.placeOrder(buyerId);
     }
 
-    @GetMapping("/seller/get-orders")
+    @GetMapping("/sales")
+    @PreAuthorize("hasRole('SELLER')")
     public List<OrderDto> getSellerOrders(@AuthenticationPrincipal UserPrincipal seller) {
         Long sellerId = seller.getId();
         return orderService.getSellerOrders(sellerId);
     }
 
-    @GetMapping("/buyer/get-orders")
+    @GetMapping
+    @PreAuthorize("hasRole('BUYER')")
     public List<CheckoutGroupDto> getBuyerOrders(@AuthenticationPrincipal UserPrincipal buyer) {
         Long buyerId = buyer.getId();
         return orderService.getBuyerOrders(buyerId);

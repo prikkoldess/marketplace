@@ -19,7 +19,7 @@ public class WishlistController {
         this.wishlistService = wishlistService;
     }
 
-    @GetMapping("/buyer/get-items")
+    @GetMapping
     public List<WishlistDto> getWishListItems(@AuthenticationPrincipal UserPrincipal principal) {
         Long buyerId = principal.getId();
         return wishlistService.getWishListItems(buyerId);
