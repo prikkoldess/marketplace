@@ -16,6 +16,9 @@ public class RabbitMQConfig {
     public static final String EXCHANGE_PRICE_DROP = "price.drop.exchange";
     public static final String ROUTING_KEY_PRICE_DROP = "price.drop.routing.key";
 
+    public static final String QUEUE_PRODUCT_EVENT = "product.event.queue";
+    public static final String ROUTING_KEY_PRODUCT_EVENT = "product.event.routing.key";
+
     @Bean
     public Queue priceDropQueue() {
         return new Queue(QUEUE_PRICE_DROP, true);
@@ -27,8 +30,18 @@ public class RabbitMQConfig {
     }
 
     @Bean
+    public Queue productEventQueue() {
+        return new Queue(QUEUE_PRODUCT_EVENT, true);
+    }
+
+    @Bean
     public Binding priceDropBinding() {
         return BindingBuilder.bind(priceDropQueue()).to(priceDropExchange()).with(ROUTING_KEY_PRICE_DROP);
+    }
+
+    @Bean
+    public Binding productEventBinding() {
+        return BindingBuilder.bind(productEventQueue()).to(priceDropExchange()).with(ROUTING_KEY_PRODUCT_EVENT);
     }
 
     @Bean
