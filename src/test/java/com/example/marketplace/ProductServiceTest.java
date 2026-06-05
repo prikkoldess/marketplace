@@ -9,6 +9,7 @@ import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
 import java.util.Optional;
+import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -17,6 +18,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import com.example.marketplace.Merchant.Merchant;
 import com.example.marketplace.product.Product;
 import com.example.marketplace.product.ProductRepository;
 import com.example.marketplace.product.ProductService;
@@ -40,28 +42,28 @@ public class ProductServiceTest {
 
     private User user;
 
+    private Merchant merchant;
+
     @BeforeEach
     void setaUp() {
         user = mock(User.class);
+        merchant = mock(Merchant.class);
     }
 
     @Test
     void createProduct() {
         Long sellerId = 1L;
-        when(userRepository.findById(sellerId)).thenReturn(Optional.of(user));
-        ProductCreateDto dto = new ProductCreateDto();
-        dto.setTitle("Apple");
-        dto.setPrice(new BigDecimal("50.00"));
-        dto.setQuantity(2);
+        ProductCreateDto dto = new ProductCreateDto("Apple", 2, new BigDecimal("50.00"));
         when(user.getRole()).thenReturn(Role.SELLER);
+        when(user.getMerchant()).thenReturn(merchant);
         when(userRepository.findById(sellerId)).thenReturn(Optional.of(user));
         when(productRepository.save(any(Product.class))).thenAnswer(i -> i.getArgument(0));
 
         ProductDto result = productService.createProduct(dto, sellerId);
 
-        assertEquals("Apple", result.getTitle());
-        assertEquals(new BigDecimal("50.00"), result.getPrice());
-        assertEquals(2, result.getQuantity());
+        assertEquals("Apple", result.title());
+        assertEquals(new BigDecimal("50.00"), result.price());
+        assertEquals(2, result.quantity());
         verify(productRepository, times(1)).save(any(Product.class));
     }
 
@@ -69,9 +71,16 @@ public class ProductServiceTest {
     void deleteProduct() {
         Long productId = 100L;
         Long sellerId = 1L;
-        Product product = new Product("Apple", new BigDecimal("50.00"), 2, user);
+        UUID merchantId = UUID.randomUUID();
+
+        when(merchant.getId()).thenReturn(merchantId);
+        when(user.getMerchant()).thenReturn(merchant);
+        when(userRepository.findById(sellerId)).thenReturn(Optional.of(user));
+
+        Product product = new Product("Apple", new BigDecimal("50.00"), 2, merchant);
+
+        when(productRepository.findByIdAndMerchantId(productId, merchantId)).thenReturn(Optional.of(product));
         assertEquals(new BigDecimal("50.00"), product.getPrice());
-        when(productRepository.findByIdAndSellerId(productId, sellerId)).thenReturn(Optional.of(product));
 
         productService.deleteProduct(productId, sellerId);
 
@@ -82,8 +91,14 @@ public class ProductServiceTest {
     void hideProduct() {
         Long productId = 100L;
         Long sellerId = 1L;
-        Product product = new Product("Apple", new BigDecimal("50.00"), 2, user);
-        when(productRepository.findByIdAndSellerId(productId, sellerId)).thenReturn(Optional.of(product));
+        UUID merchantId = UUID.randomUUID();
+        when(merchant.getId()).thenReturn(merchantId);
+        when(user.getMerchant()).thenReturn(merchant);
+        when(userRepository.findById(sellerId)).thenReturn(Optional.of(user));
+
+        Product product = new Product("Apple", new BigDecimal("50.00"), 2, merchant);
+        when(productRepository.findByIdAndMerchantId(productId, merchantId)).thenReturn(Optional.of(product));
+
         assertEquals(ProductStatus.ACTIVE, product.getStatus());
 
         productService.hideProduct(productId, sellerId);

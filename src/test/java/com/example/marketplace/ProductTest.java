@@ -1,11 +1,13 @@
 package com.example.marketplace;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.mock;
 
 import java.math.BigDecimal;
 
 import org.junit.jupiter.api.Test;
 
+import com.example.marketplace.Merchant.Merchant;
 import com.example.marketplace.product.Product;
 import com.example.marketplace.product.ProductStatus;
 import com.example.marketplace.user.User;
@@ -15,15 +17,13 @@ public class ProductTest {
     void createProduct() {
         User seller = new User();
         seller.setId(1L);
-
+        Merchant merchant = mock(Merchant.class);
         Product product = new Product("Apple",
                 new BigDecimal("50.00"),
-                10,
-                seller);
+                10, merchant);
 
         assertEquals("Apple", product.getTitle());
         assertEquals(new BigDecimal("50.00"), product.getPrice());
-        assertEquals(seller, product.getSeller());
         assertEquals(ProductStatus.ACTIVE, product.getStatus());
     }
 
@@ -31,11 +31,11 @@ public class ProductTest {
     void hideProduct() {
         User seller = new User();
         seller.setId(1L);
-
+        Merchant merchant = mock(Merchant.class);
         Product product = new Product("Apple",
                 new BigDecimal("50.00"),
                 10,
-                seller);
+                merchant);
         product.hideProduct();
 
         assertEquals(ProductStatus.BLOCKED, product.getStatus());
@@ -45,11 +45,10 @@ public class ProductTest {
     void updateProduct() {
         User seller = new User();
         seller.setId(1L);
-
+        Merchant merchant = mock(Merchant.class);
         Product product = new Product("Apple",
                 new BigDecimal("50.00"),
-                10,
-                seller);
+                10, merchant);
 
         product.updateProduct(null, new BigDecimal("100"));
 
@@ -61,11 +60,11 @@ public class ProductTest {
     void unlockProduct() {
         User seller = new User();
         seller.setId(1L);
-
+        Merchant merchant = mock(Merchant.class);
         Product product = new Product("Apple",
                 new BigDecimal("50.00"),
                 10,
-                seller);
+                merchant);
 
         product.hideProduct();
         assertEquals(ProductStatus.BLOCKED, product.getStatus());
@@ -76,9 +75,10 @@ public class ProductTest {
 
     @Test
     void decreaseQuantity() {
+        Merchant merchant = mock(Merchant.class);
         User user = new User();
         user.setId(1L);
-        Product product = new Product("Apple", new BigDecimal("30"), 20, user);
+        Product product = new Product("Apple", new BigDecimal("30"), 20, merchant);
         product.decreaseQuantity(10);
         assertEquals(10, product.getQuantity());
 

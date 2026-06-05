@@ -2,6 +2,7 @@ package com.example.marketplace;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -15,6 +16,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import com.example.marketplace.Merchant.Merchant;
+import com.example.marketplace.Merchant.MerchantRepository;
 import com.example.marketplace.auth.AuthService;
 import com.example.marketplace.basket.Basket;
 import com.example.marketplace.basket.BasketRepository;
@@ -22,6 +25,7 @@ import com.example.marketplace.user.Role;
 import com.example.marketplace.user.Status;
 import com.example.marketplace.user.User;
 import com.example.marketplace.user.UserRepository;
+import com.example.marketplace.user.dto.CreateBuyerDto;
 import com.example.marketplace.user.dto.CreateUserDto;
 import com.example.marketplace.user.dto.UserDto;
 
@@ -36,7 +40,8 @@ public class AuthServiceTest {
 
     @Mock
     PasswordEncoder passwordEncoder;
-
+    @Mock
+    private MerchantRepository merchantRepository;
     @InjectMocks
     AuthService authService;
 
@@ -50,15 +55,16 @@ public class AuthServiceTest {
         seller.setFirstName("Dan");
         seller.setLastName("Jones");
         seller.setPassword("sellerpass");
-
+        seller.setMerchantName("grocery");
         when(passwordEncoder.encode("sellerpass")).thenReturn("encoded_pass");
         when(repository.save(any(User.class))).thenAnswer(i -> i.getArgument(0));
-
+        when(merchantRepository.save(any(Merchant.class))).thenAnswer(i -> i.getArgument(0));
         UserDto result = authService.registerSeller(seller);
 
         assertEquals("Dan", result.getFirstName());
         assertEquals("Jones", result.getLastName());
         assertEquals("seller@gmail.com", result.getEmail());
+        assertEquals("grocery", result.getMerchantName());
         verify(repository).save(usercaptor.capture());
 
         User savedSeller = usercaptor.getValue();
@@ -66,12 +72,13 @@ public class AuthServiceTest {
         assertEquals(Role.SELLER, savedSeller.getRole());
         assertEquals(Status.ACTIVE, savedSeller.getStatus());
         assertEquals("encoded_pass", savedSeller.getPassword());
+        assertEquals("grocery", savedSeller.getMerchant().getName());
         verify(passwordEncoder).encode("sellerpass");
     }
 
     @Test
     void registerBuyer() {
-        CreateUserDto buyer = new CreateUserDto();
+        CreateBuyerDto buyer = new CreateBuyerDto();
         buyer.setEmail("buyer@gmail.com");
         buyer.setFirstName("Ben");
         buyer.setLastName("Jones");

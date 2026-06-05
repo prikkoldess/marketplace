@@ -9,6 +9,7 @@ import java.math.BigDecimal;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import com.example.marketplace.Merchant.Merchant;
 import com.example.marketplace.order.Order;
 import com.example.marketplace.order.OrderStatus;
 import com.example.marketplace.product.Product;
@@ -18,11 +19,13 @@ public class OrderTest {
 
     private User mockUser;
     private Order order;
+    private Merchant merchant;
 
     @BeforeEach
     void setUp() {
         mockUser = mock(User.class);
-        order = new Order(mockUser);
+        merchant = mock(Merchant.class);
+        order = new Order(mockUser, merchant);
     }
 
     @Test
