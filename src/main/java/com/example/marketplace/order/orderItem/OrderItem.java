@@ -4,8 +4,6 @@ import java.math.BigDecimal;
 
 import com.example.marketplace.order.Order;
 import com.example.marketplace.product.Product;
-import com.example.marketplace.user.User;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -39,17 +37,12 @@ public class OrderItem {
     private Product product;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "seller_id")
-    private User seller;
-
-    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id")
     private Order order;
 
     public OrderItem(Integer quantity, Product product, Order order) {
         this.order = order;
         this.product = product;
-        this.seller = product.getSeller();
         this.quantity = quantity;
         this.priceAtPurchase = product.getPrice();
 

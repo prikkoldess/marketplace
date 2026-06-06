@@ -1,7 +1,7 @@
 package com.example.marketplace.order;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.marketplace.Merchant.Merchant;
 import com.example.marketplace.basket.Basket;
 import com.example.marketplace.basket.BasketRepository;
 import com.example.marketplace.basket.basketItem.BasketItem;
@@ -19,22 +20,25 @@ import com.example.marketplace.order.dto.OrderItemDto;
 import com.example.marketplace.product.Product;
 import com.example.marketplace.product.ProductRepository;
 import com.example.marketplace.user.User;
+import com.example.marketplace.user.UserRepository;
 
 @Service
 public class OrderService {
     private final OrderRepository orderRepository;
     private final BasketRepository basketRepository;
     private final ProductRepository productRepository;
+    private final UserRepository userRepository;
 
     public OrderService(OrderRepository orderRepository, BasketRepository basketRepository,
-            ProductRepository productRepository) {
+            ProductRepository productRepository, UserRepository userRepository) {
         this.orderRepository = orderRepository;
         this.basketRepository = basketRepository;
         this.productRepository = productRepository;
+        this.userRepository = userRepository;
     }
 
     @Transactional
-    public void createOrder(Long buyerId) {
+    public void placeOrder(Long buyerId) {
         Basket basket = basketRepository.findByBuyerId(buyerId)
                 .orElseThrow(() -> new IllegalArgumentException("Buyer not found"));
 
@@ -42,30 +46,31 @@ public class OrderService {
             throw new IllegalStateException("The basket is empty");
         }
 
-        Map<User, List<BasketItem>> itemsBySeller = basket.getItems().stream()
-                .collect(Collectors.groupingBy(item -> item.getProduct().getSeller()));
-
-        List<Order> createOrders = new ArrayList<>();
+        Map<Merchant, List<BasketItem>> itemsByMerchant = basket.getItems().stream()
+                .collect(Collectors.groupingBy(item -> item.getProduct().getMerchant()));
 
         UUID currentCheckoutGroupId = UUID.randomUUID();
 
-        for (Map.Entry<User, List<BasketItem>> entry : itemsBySeller.entrySet()) {
+        for (Map.Entry<Merchant, List<BasketItem>> entry : itemsByMerchant.entrySet()) {
+            Merchant merchant = entry.getKey();
 
-            List<BasketItem> sellerItems = entry.getValue();
+            List<BasketItem> sortedItems = entry.getValue().stream()
+                    .sorted(Comparator.comparing(i -> i.getProduct().getId()))
+                    .toList();
 
-            Order sellerOrder = new Order(basket.getBuyer());
-            sellerOrder.setCheckoutGroupId(currentCheckoutGroupId);
+            Order merchantOrder = new Order(basket.getBuyer(), merchant);
+            merchantOrder.setCheckoutGroupId(currentCheckoutGroupId);
 
-            for (BasketItem basketItem : sellerItems) {
+            for (BasketItem basketItem : sortedItems) {
                 Product lockedProduct = productRepository.findByIdWithLock(basketItem.getProduct().getId())
                         .orElseThrow(() -> new IllegalArgumentException("Product not found"));
 
                 lockedProduct.decreaseQuantity(basketItem.getQuantity());
-                sellerOrder.addToOrder(basketItem.getQuantity(), lockedProduct);
+                merchantOrder.addToOrder(basketItem.getQuantity(), lockedProduct);
 
             }
 
-            createOrders.add(orderRepository.save(sellerOrder));
+            orderRepository.save(merchantOrder);
         }
 
         basket.clearBasket();
@@ -73,15 +78,13 @@ public class OrderService {
 
     @Transactional
     public void updateOrderStatus(OrderStatus newStatus, Long orderId, Long sellerId) {
+        User seller = userRepository.findById(sellerId)
+                .orElseThrow(() -> new IllegalArgumentException("Seller not found"));
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new IllegalArgumentException("Order not found"));
 
-        boolean isOwner = order.getItems().stream().findFirst()
-                .map(items -> items.getProduct().getSeller().getId().equals(sellerId))
-                .orElse(false);
-
-        if (!isOwner) {
-            throw new SecurityException("You can only update your own orders");
+        if (seller.getMerchant() == null || !order.getMerchant().getId().equals(seller.getMerchant().getId())) {
+            throw new SecurityException("You can only update your own merchant's orders");
         }
 
         order.changeStatus(newStatus);
@@ -98,7 +101,10 @@ public class OrderService {
     }
 
     public List<OrderDto> getSellerOrders(Long sellerId) {
-        List<Order> orders = orderRepository.findOrdersBySellerId(sellerId);
+        User seller = userRepository.findById(sellerId)
+                .orElseThrow(() -> new IllegalArgumentException("Seller not found"));
+
+        List<Order> orders = orderRepository.findOrdersByMerchantId(seller.getMerchant().getId());
         return orders.stream()
                 .map(this::mapToDto)
                 .toList();

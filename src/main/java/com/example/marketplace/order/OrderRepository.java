@@ -14,6 +14,6 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
 
     List<Order> findByCheckoutGroupIdAndBuyerId(UUID checkoutGroupId, Long buyerId);
 
-    @Query("SELECT DISTINCT o FROM Order o JOIN o.items i WHERE i.seller.id = :sellerId")
-    List<Order> findOrdersBySellerId(@Param("sellerId") Long sellerId);
+    @Query("SELECT o FROM Order o WHERE o.merchant.id = :merchantId")
+    List<Order> findOrdersByMerchantId(@Param("merchantId") UUID merchantId);
 }

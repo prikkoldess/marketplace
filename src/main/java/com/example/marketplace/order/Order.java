@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import com.example.marketplace.Merchant.Merchant;
 import com.example.marketplace.order.orderItem.OrderItem;
 import com.example.marketplace.product.Product;
 import com.example.marketplace.user.User;
@@ -46,11 +47,17 @@ public class Order {
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
     private List<OrderItem> items = new ArrayList<>();
+
     @Column(name = "total_amount", precision = 19, scale = 2)
     private BigDecimal totalAmount = BigDecimal.ZERO;
 
-    public Order(User buyer) {
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "merchant_id")
+    private Merchant merchant;
+
+    public Order(User buyer, Merchant merchant) {
         this.buyer = buyer;
+        this.merchant = merchant;
     }
 
     public void addToOrder(Integer quantity, Product product) {
@@ -67,6 +74,16 @@ public class Order {
     }
 
     public void changeStatus(OrderStatus requestStatus) {
+        if (this.status == OrderStatus.DELIVERED || this.status == OrderStatus.SHIPPED) {
+            throw new IllegalStateException("Нельзя отменить уже отправленный или доставленный заказ");
+        }
         this.status = requestStatus;
+    }
+
+    public void cancelOrder() {
+        if (this.status == OrderStatus.DELIVERED || this.status == OrderStatus.SHIPPED) {
+            throw new IllegalStateException("Нельзя отменить уже отправленный или доставленный заказ");
+        }
+        this.status = OrderStatus.CANCELLED;
     }
 }
