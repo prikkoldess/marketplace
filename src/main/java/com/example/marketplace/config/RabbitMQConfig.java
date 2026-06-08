@@ -4,6 +4,7 @@ import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
 import org.springframework.amqp.core.DirectExchange;
 import org.springframework.amqp.core.Queue;
+import org.springframework.amqp.core.QueueBuilder;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.context.annotation.Bean;
@@ -18,6 +19,10 @@ public class RabbitMQConfig {
 
     public static final String QUEUE_PRODUCT_EVENT = "product.event.queue";
     public static final String ROUTING_KEY_PRODUCT_EVENT = "product.event.routing.key";
+
+    public static final String QUEUE_PRODUCT_EVENT_DELAY = "product.event.delay.queue";
+    public static final String EXCHANGE_PRODUCT_EVENT_DELAY = "product.event.delay.exchange";
+    public static final String ROUTING_KEY_PRODUCT_EVENT_DELAY = "product.event.delay.routing.key";
 
     @Bean
     public Queue priceDropQueue() {
@@ -47,5 +52,25 @@ public class RabbitMQConfig {
     @Bean
     public MessageConverter jsonMassConverter() {
         return new Jackson2JsonMessageConverter();
+    }
+
+    @Bean
+    public DirectExchange productEventDelayExchange() {
+        return new DirectExchange(EXCHANGE_PRODUCT_EVENT_DELAY);
+    }
+
+    @Bean
+    public Queue productEventDelayQueue() {
+        return QueueBuilder.durable(QUEUE_PRODUCT_EVENT_DELAY)
+                .withArgument("x-dead-letter-exchange", EXCHANGE_PRICE_DROP)
+                .withArgument("x-dead-letter-routing-key", ROUTING_KEY_PRODUCT_EVENT)
+                .withArgument("x-message-ttl", 150000)
+                .build();
+    }
+
+    @Bean
+    public Binding productEventDelayBinding() {
+        return BindingBuilder.bind(productEventDelayQueue()).to(productEventDelayExchange())
+                .with(ROUTING_KEY_PRODUCT_EVENT_DELAY);
     }
 }

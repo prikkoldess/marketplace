@@ -8,6 +8,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.marketplace.config.RabbitMQConfig;
+import com.example.marketplace.product.Product;
+import com.example.marketplace.product.ProductRepository;
 import com.example.marketplace.user.User;
 import com.example.marketplace.wishlist.Wishlist;
 import com.example.marketplace.wishlist.WishlistRepository;
@@ -17,15 +19,24 @@ public class ProductEventService {
 
     private final WishlistRepository repository;
     private final RabbitTemplate rabbitTemplate;
+    public final ProductRepository productRepository;
 
-    public ProductEventService(WishlistRepository repository, RabbitTemplate rabbitTemplate) {
+    public ProductEventService(WishlistRepository repository, RabbitTemplate rabbitTemplate,
+            ProductRepository productRepository) {
         this.repository = repository;
         this.rabbitTemplate = rabbitTemplate;
+        this.productRepository = productRepository;
     }
 
     @Transactional(readOnly = true)
     @RabbitListener(queues = RabbitMQConfig.QUEUE_PRODUCT_EVENT)
     public void handlePriceDropEvent(ProductEventDto eventDto) {
+        Product currentProduct = productRepository.findById(eventDto.getProductId()).orElse(null);
+
+        if (currentProduct == null || currentProduct.getPrice().compareTo(eventDto.getNewPrice()) != 0) {
+            return;
+        }
+
         List<Wishlist> users = repository.findByProductId(eventDto.getProductId());
 
         for (Wishlist user : users) {

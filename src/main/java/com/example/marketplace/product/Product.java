@@ -2,8 +2,7 @@ package com.example.marketplace.product;
 
 import java.math.BigDecimal;
 
-import com.example.marketplace.user.User;
-
+import com.example.marketplace.Merchant.Merchant;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -38,10 +37,10 @@ public class Product {
     private ProductStatus status = ProductStatus.ACTIVE;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "seller_id")
-    private User seller;
+    @JoinColumn(name = "merchant_id")
+    private Merchant merchant;
 
-    public Product(String title, BigDecimal price, Integer quantity, User seller) {
+    public Product(String title, BigDecimal price, Integer quantity, Merchant merchant) {
         if (title == null || title.isBlank())
             throw new IllegalArgumentException("Name is required");
         if (price == null || price.compareTo(BigDecimal.ZERO) < 0)
@@ -51,15 +50,17 @@ public class Product {
         this.title = title;
         this.price = price;
         this.quantity = quantity;
-        this.seller = seller;
-
+        this.merchant = merchant;
     }
 
-    public static Product createProduct(String title, BigDecimal price, Integer quantity, User seller) {
+    public void setMerchant(Merchant merchant) {
+        this.merchant = merchant;
+    }
+
+    public static Product createProduct(String title, BigDecimal price, Integer quantity, Merchant merchant) {
         return new Product(title,
                 price,
-                quantity,
-                seller);
+                quantity, merchant);
 
     }
 

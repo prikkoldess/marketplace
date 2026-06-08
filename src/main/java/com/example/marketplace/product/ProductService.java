@@ -2,35 +2,44 @@ package com.example.marketplace.product;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.UUID;
 
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.marketplace.config.RabbitMQConfig;
-import com.example.marketplace.notification.PriceChangeNotificationDto;
+
+import com.example.marketplace.notification.ProductEventDto;
 import com.example.marketplace.product.dto.ProductCreateDto;
 import com.example.marketplace.product.dto.ProductDto;
 import com.example.marketplace.product.dto.ProductUpdateDto;
 import com.example.marketplace.user.Role;
 import com.example.marketplace.user.User;
 import com.example.marketplace.user.UserRepository;
-import com.example.marketplace.wishlist.Wishlist;
-import com.example.marketplace.wishlist.WishlistRepository;
 
 @Service
 public class ProductService {
     private final ProductRepository productRepository;
     private final UserRepository userRepository;
-    private final WishlistRepository wishlistRepository;
     private final RabbitTemplate rabbitTemplate;
 
     public ProductService(ProductRepository productRepository, UserRepository userRepository,
-            WishlistRepository wishlistRepository, RabbitTemplate rabbitTemplate) {
+            RabbitTemplate rabbitTemplate) {
         this.productRepository = productRepository;
         this.userRepository = userRepository;
-        this.wishlistRepository = wishlistRepository;
         this.rabbitTemplate = rabbitTemplate;
+    }
+
+    public UUID getMerchantId(Long sellerId) {
+        User seller = userRepository.findById(sellerId)
+                .orElseThrow(() -> new IllegalArgumentException("Seller not found"));
+
+        if (seller.getMerchant() == null) {
+            throw new IllegalStateException("Seller does not have an associated merchant account");
+        }
+
+        return seller.getMerchant().getId();
     }
 
     public ProductDto createProduct(ProductCreateDto dto, Long sellerId) {
@@ -40,7 +49,7 @@ public class ProductService {
         if (seller.getRole() != Role.SELLER) {
             throw new IllegalStateException("Only sellers can create products");
         }
-        Product product = Product.createProduct(dto.getTitle(), dto.getPrice(), dto.getQuantity(), seller);
+        Product product = Product.createProduct(dto.title(), dto.price(), dto.quantity(), seller.getMerchant());
         Product savedProduct = productRepository.save(product);
 
         return mapToDto(savedProduct);
@@ -48,7 +57,8 @@ public class ProductService {
 
     @Transactional
     public void deleteProduct(Long id, Long sellerId) {
-        Product product = productRepository.findByIdAndSellerId(id, sellerId)
+        UUID merchantId = getMerchantId(sellerId);
+        Product product = productRepository.findByIdAndMerchantId(id, merchantId)
                 .orElseThrow(() -> new IllegalArgumentException("Product not found"));
         productRepository.delete(product);
     }
@@ -60,8 +70,10 @@ public class ProductService {
         productRepository.delete(product);
     }
 
+    @Transactional
     public void hideProduct(Long productId, Long sellerId) {
-        Product product = productRepository.findByIdAndSellerId(productId, sellerId)
+        UUID merchantId = getMerchantId(sellerId);
+        Product product = productRepository.findByIdAndMerchantId(productId, merchantId)
                 .orElseThrow(() -> new IllegalArgumentException("Product not found"));
         product.hideProduct();
     }
@@ -73,30 +85,25 @@ public class ProductService {
         product.hideProduct();
     }
 
+    @Transactional
     public ProductDto updateProduct(Long productId, Long sellerId, ProductUpdateDto dto) {
-        Product product = productRepository.findByIdAndSellerId(productId, sellerId)
+        UUID merchantId = getMerchantId(sellerId);
+        Product product = productRepository.findByIdAndMerchantId(productId, merchantId)
                 .orElseThrow(() -> new IllegalArgumentException("Product not found"));
 
         BigDecimal oldPrice = product.getPrice();
 
-        product.updateProduct(dto.getQuantity(), dto.getPrice());
+        product.updateProduct(dto.quantity(), dto.price());
         Product savedProduct = productRepository.save(product);
 
-        if (dto.getPrice() != null && dto.getPrice().compareTo(oldPrice) < 0) {
-            List<Wishlist> wishlists = wishlistRepository.findByProductId(productId);
-            for (Wishlist wishlist : wishlists) {
-                PriceChangeNotificationDto notificationDto = new PriceChangeNotificationDto(
-                        wishlist.getBuyer().getEmail(),
-                        wishlist.getBuyer().getFirstName(),
-                        product.getTitle(),
-                        oldPrice,
-                        dto.getPrice());
+        if (dto.price() != null && dto.price().compareTo(oldPrice) < 0) {
+            ProductEventDto eventDto = new ProductEventDto(productId, product.getTitle(), oldPrice, dto.price());
 
-                rabbitTemplate.convertAndSend(
-                        RabbitMQConfig.EXCHANGE_PRICE_DROP,
-                        RabbitMQConfig.ROUTING_KEY_PRICE_DROP,
-                        notificationDto);
-            }
+            rabbitTemplate.convertAndSend(
+                    RabbitMQConfig.EXCHANGE_PRODUCT_EVENT_DELAY,
+                    RabbitMQConfig.ROUTING_KEY_PRODUCT_EVENT_DELAY,
+                    eventDto);
+
         }
 
         return mapToDto(savedProduct);
@@ -104,7 +111,8 @@ public class ProductService {
 
     @Transactional
     public void unlockProduct(Long id, Long sellerId) {
-        Product product = productRepository.findByIdAndSellerId(id, sellerId)
+        UUID mercantId = getMerchantId(sellerId);
+        Product product = productRepository.findByIdAndMerchantId(id, mercantId)
                 .orElseThrow(() -> new IllegalArgumentException("Product not found"));
         product.unlockProduct();
     }
@@ -117,8 +125,9 @@ public class ProductService {
     }
 
     public List<ProductDto> getAllSellerProduct(Long sellerId) {
+        UUID merchantId = getMerchantId(sellerId);
 
-        return productRepository.findBySellerId(sellerId)
+        return productRepository.findByMerchantId(merchantId)
                 .stream()
                 .map(this::mapToDto)
                 .toList();
@@ -132,11 +141,10 @@ public class ProductService {
     }
 
     private ProductDto mapToDto(Product product) {
-        ProductDto dto = new ProductDto();
-        dto.setId(product.getId());
-        dto.setTitle(product.getTitle());
-        dto.setQuantity(product.getQuantity());
-        dto.setPrice(product.getPrice());
-        return dto;
+        return new ProductDto(
+                product.getId(),
+                product.getTitle(),
+                product.getQuantity(),
+                product.getPrice());
     }
 }
