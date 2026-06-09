@@ -1,6 +1,5 @@
 package com.example.marketplace.order;
 
-import java.math.BigDecimal;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -14,9 +13,10 @@ import com.example.marketplace.Merchant.Merchant;
 import com.example.marketplace.basket.Basket;
 import com.example.marketplace.basket.BasketRepository;
 import com.example.marketplace.basket.basketItem.BasketItem;
-import com.example.marketplace.order.dto.CheckoutGroupDto;
 import com.example.marketplace.order.dto.OrderDto;
 import com.example.marketplace.order.dto.OrderItemDto;
+import com.example.marketplace.order.orderGroup.OrderGroup;
+import com.example.marketplace.order.orderGroup.OrderGroupRepository;
 import com.example.marketplace.product.Product;
 import com.example.marketplace.product.ProductRepository;
 import com.example.marketplace.user.User;
@@ -29,16 +29,20 @@ public class OrderService {
     private final ProductRepository productRepository;
     private final UserRepository userRepository;
 
+    private final OrderGroupRepository orderGroupRepository;
+
     public OrderService(OrderRepository orderRepository, BasketRepository basketRepository,
-            ProductRepository productRepository, UserRepository userRepository) {
+            ProductRepository productRepository, UserRepository userRepository,
+            OrderGroupRepository orderGroupRepository) {
         this.orderRepository = orderRepository;
         this.basketRepository = basketRepository;
         this.productRepository = productRepository;
         this.userRepository = userRepository;
+        this.orderGroupRepository = orderGroupRepository;
     }
 
     @Transactional
-    public void placeOrder(Long buyerId) {
+    public UUID placeOrder(Long buyerId) {
         Basket basket = basketRepository.findByBuyerId(buyerId)
                 .orElseThrow(() -> new IllegalArgumentException("Buyer not found"));
 
@@ -46,10 +50,11 @@ public class OrderService {
             throw new IllegalStateException("The basket is empty");
         }
 
+        User buyer = basket.getBuyer();
+        OrderGroup orderGroup = new OrderGroup(buyer);
+
         Map<Merchant, List<BasketItem>> itemsByMerchant = basket.getItems().stream()
                 .collect(Collectors.groupingBy(item -> item.getProduct().getMerchant()));
-
-        UUID currentCheckoutGroupId = UUID.randomUUID();
 
         for (Map.Entry<Merchant, List<BasketItem>> entry : itemsByMerchant.entrySet()) {
             Merchant merchant = entry.getKey();
@@ -59,7 +64,6 @@ public class OrderService {
                     .toList();
 
             Order merchantOrder = new Order(basket.getBuyer(), merchant);
-            merchantOrder.setCheckoutGroupId(currentCheckoutGroupId);
 
             for (BasketItem basketItem : sortedItems) {
                 Product lockedProduct = productRepository.findByIdWithLock(basketItem.getProduct().getId())
@@ -70,10 +74,13 @@ public class OrderService {
 
             }
 
-            orderRepository.save(merchantOrder);
-        }
+            orderGroup.addOrder(merchantOrder);
 
+        }
+        orderGroupRepository.save(orderGroup);
         basket.clearBasket();
+
+        return orderGroup.getId();
     }
 
     @Transactional
@@ -110,19 +117,6 @@ public class OrderService {
                 .toList();
     }
 
-    public List<CheckoutGroupDto> getBuyerOrders(Long buyerId) {
-        List<Order> order = orderRepository.findByBuyerId(buyerId);
-
-        Map<UUID, List<Order>> groupedOrders = order
-                .stream()
-                .collect(Collectors.groupingBy(Order::getCheckoutGroupId));
-
-        return groupedOrders.entrySet()
-                .stream()
-                .map(entry -> mapToBuyerDto(entry.getValue(), entry.getKey()))
-                .toList();
-    }
-
     public OrderDto mapToDto(Order order) {
         OrderDto dto = new OrderDto();
         dto.setId(order.getId());
@@ -136,30 +130,11 @@ public class OrderService {
             itemDto.setPriceAtPurchase(item.getPriceAtPurchase());
             return itemDto;
         }).toList();
-        dto.setCheckoutGroupId(order.getCheckoutGroupId());
+        dto.setOrderGroupId(order.getOrderGroup().getId());
         dto.setTotalAmount(order.getTotalAmount());
         dto.setStatus(order.getStatus());
         dto.setItems(itemDtos);
         return dto;
-    }
-
-    public CheckoutGroupDto mapToBuyerDto(List<Order> orders, UUID groupId) {
-        CheckoutGroupDto groupDto = new CheckoutGroupDto();
-        groupDto.setCheckoutGroupId(groupId);
-
-        List<OrderDto> orderDtos = orders.stream()
-                .map(this::mapToDto)
-                .toList();
-
-        groupDto.setOrders(orderDtos);
-
-        BigDecimal total = orders.stream()
-                .map(Order::getTotalAmount)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-        groupDto.setTotalAmount(total);
-        groupDto.setGlobalStatus(calculateGlobalStatus(orderDtos));
-        return groupDto;
     }
 
     public String calculateGlobalStatus(List<OrderDto> orders) {

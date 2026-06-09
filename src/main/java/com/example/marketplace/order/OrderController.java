@@ -1,6 +1,7 @@
 package com.example.marketplace.order;
 
 import java.util.List;
+import java.util.UUID;
 
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -11,22 +12,26 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.marketplace.order.dto.CheckoutGroupDto;
 import com.example.marketplace.order.dto.OrderDto;
+import com.example.marketplace.order.orderGroup.OrderGroupService;
 import com.example.marketplace.security.UserPrincipal;
 
 @RestController
 @RequestMapping("/orders")
 public class OrderController {
     private final OrderService orderService;
+    private OrderGroupService orderGroupService;
 
-    public OrderController(OrderService orderService) {
+    public OrderController(OrderService orderService, OrderGroupService orderGroupService) {
         this.orderService = orderService;
+        this.orderGroupService = orderGroupService;
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('SELLER')")
-    public void placeOrder(@AuthenticationPrincipal com.example.marketplace.security.UserPrincipal buyer) {
+    @PreAuthorize("hasRole('BUYER')")
+    public UUID placeOrder(@AuthenticationPrincipal UserPrincipal buyer) {
         Long buyerId = buyer.getId();
-        orderService.placeOrder(buyerId);
+        UUID order = orderService.placeOrder(buyerId);
+        return order;
     }
 
     @GetMapping("/sales")
@@ -38,9 +43,8 @@ public class OrderController {
 
     @GetMapping
     @PreAuthorize("hasRole('BUYER')")
-    public List<CheckoutGroupDto> getBuyerOrders(@AuthenticationPrincipal UserPrincipal buyer) {
+    public List<CheckoutGroupDto> getBuyersOrder(@AuthenticationPrincipal UserPrincipal buyer) {
         Long buyerId = buyer.getId();
-        return orderService.getBuyerOrders(buyerId);
+        return orderGroupService.getBuyersOrder(buyerId);
     }
-
 }

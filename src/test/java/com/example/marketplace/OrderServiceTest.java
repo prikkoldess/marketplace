@@ -27,6 +27,8 @@ import com.example.marketplace.order.OrderRepository;
 import com.example.marketplace.order.OrderService;
 import com.example.marketplace.order.OrderStatus;
 import com.example.marketplace.order.dto.OrderDto;
+import com.example.marketplace.order.orderGroup.OrderGroup;
+import com.example.marketplace.order.orderGroup.OrderGroupRepository;
 import com.example.marketplace.product.Product;
 import com.example.marketplace.product.ProductRepository;
 import com.example.marketplace.user.User;
@@ -42,7 +44,8 @@ public class OrderServiceTest {
     private ProductRepository productRepository;
     @Mock
     private UserRepository userRepository;
-
+    @Mock
+    private OrderGroupRepository orderGroupRepository;
     @InjectMocks
     private OrderService orderService;
 
@@ -50,7 +53,6 @@ public class OrderServiceTest {
     void placeOrder() {
         Long buyerId = 1L;
         User buyer = mock(User.class);
-        User seller = mock(User.class);
         Merchant merchant = mock(Merchant.class);
         Basket basket = new Basket(buyer);
         Product product = new Product("Apple", new BigDecimal("100.00"), 2, merchant);
@@ -62,13 +64,13 @@ public class OrderServiceTest {
         when(basketRepository.findByBuyerId(buyerId)).thenReturn(Optional.of(basket));
 
         when(productRepository.findByIdWithLock(100L)).thenReturn(Optional.of(product));
-        when(orderRepository.save(any(Order.class))).thenAnswer(i -> i.getArgument(0));
+        when(orderGroupRepository.save(any(OrderGroup.class))).thenAnswer(i -> i.getArgument(0));
 
         orderService.placeOrder(buyerId);
 
         assertEquals(0, basket.getItems().size());
         assertEquals(0, product.getQuantity());
-        verify(orderRepository, times(1)).save(any(Order.class));
+        verify(orderGroupRepository, times(1)).save(any(OrderGroup.class));
     }
 
     @Test

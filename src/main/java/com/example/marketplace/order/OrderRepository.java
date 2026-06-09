@@ -12,7 +12,7 @@ import org.springframework.stereotype.Repository;
 public interface OrderRepository extends JpaRepository<Order, Long> {
     List<Order> findByBuyerId(Long buyerId);
 
-    List<Order> findByCheckoutGroupIdAndBuyerId(UUID checkoutGroupId, Long buyerId);
+    List<Order> findByOrderGroupIdAndBuyerId(UUID orderGroupId, Long buyerId);
 
     @Query("SELECT o FROM Order o WHERE o.merchant.id = :merchantId")
     List<Order> findOrdersByMerchantId(@Param("merchantId") UUID merchantId);

@@ -3,12 +3,12 @@ package com.example.marketplace.order;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
-
 import com.example.marketplace.Merchant.Merchant;
+import com.example.marketplace.order.orderGroup.OrderGroup;
 import com.example.marketplace.order.orderItem.OrderItem;
 import com.example.marketplace.product.Product;
 import com.example.marketplace.user.User;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -39,8 +39,10 @@ public class Order {
     @JoinColumn(name = "buyer_id")
     private User buyer;
 
-    @Column(name = "checkout_group_id")
-    private UUID checkoutGroupId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "order_group_id")
+    @JsonIgnore
+    private OrderGroup orderGroup;
 
     @Enumerated(EnumType.STRING)
     private OrderStatus status = OrderStatus.CREATED;
@@ -69,8 +71,8 @@ public class Order {
 
     }
 
-    public void setCheckoutGroupId(UUID checkoutGroupId) {
-        this.checkoutGroupId = checkoutGroupId;
+    public void setOrderGroup(OrderGroup orderGroup) {
+        this.orderGroup = orderGroup;
     }
 
     public void changeStatus(OrderStatus requestStatus) {
