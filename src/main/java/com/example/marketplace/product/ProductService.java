@@ -97,7 +97,8 @@ public class ProductService {
         Product savedProduct = productRepository.save(product);
 
         if (dto.price() != null && dto.price().compareTo(oldPrice) < 0) {
-            ProductEventDto eventDto = new ProductEventDto(productId, product.getTitle(), oldPrice, dto.price());
+            ProductEventDto eventDto = new ProductEventDto(UUID.randomUUID(), productId, product.getTitle(), oldPrice,
+                    dto.price());
 
             rabbitTemplate.convertAndSend(
                     RabbitMQConfig.EXCHANGE_PRODUCT_EVENT_DELAY,

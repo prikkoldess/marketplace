@@ -23,11 +23,11 @@ public class BasketController {
     }
 
     @PostMapping("/items/{productId}")
-    public void addToBasket(@PathVariable Long product, @RequestParam Integer quantity,
+    public void addToBasket(@PathVariable Long productId, @RequestParam Integer quantity,
             @AuthenticationPrincipal UserPrincipal buyer) {
 
         Long buyerId = buyer.getId();
-        basketService.addToBasket(buyerId, product, quantity);
+        basketService.addToBasket(buyerId, productId, quantity);
     }
 
     @GetMapping

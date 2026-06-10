@@ -42,7 +42,7 @@ public class ProductEventService {
         for (Wishlist user : users) {
             User buyer = user.getBuyer();
 
-            PriceChangeNotificationDto notificationDto = new PriceChangeNotificationDto(
+            PriceChangeNotificationDto notificationDto = new PriceChangeNotificationDto(eventDto.getEventId(),
                     buyer.getEmail(),
                     buyer.getFirstName(),
                     eventDto.getProductTitle(),
