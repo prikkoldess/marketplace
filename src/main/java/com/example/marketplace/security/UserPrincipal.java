@@ -26,6 +26,15 @@ public class UserPrincipal implements UserDetails {
         this.isActive = user.getStatus() == Status.ACTIVE;
     }
 
+    public UserPrincipal(Long id, String email, String role) {
+        this.id = id;
+        this.email = email;
+        this.password = "";
+        this.authorities = List.of(new SimpleGrantedAuthority("ROLE_" + role));
+        this.isActive = true;
+
+    }
+
     public Long getId() {
         return id;
     }

@@ -13,6 +13,8 @@ import com.example.marketplace.Merchant.MerchantRepository;
 import com.example.marketplace.basket.Basket;
 import com.example.marketplace.basket.BasketRepository;
 import com.example.marketplace.security.JwtService;
+import com.example.marketplace.security.RefreshTokenService;
+import com.example.marketplace.user.Status;
 import com.example.marketplace.user.User;
 import com.example.marketplace.user.UserRepository;
 import com.example.marketplace.user.dto.CreateBuyerDto;
@@ -27,16 +29,18 @@ public class AuthService {
     private final JwtService jwtService;
     private final BasketRepository basketRepository;
     private final MerchantRepository merchantRepository;
+    private final RefreshTokenService refreshTokenService;
 
     public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder,
             AuthenticationManager authenticationManager, JwtService jwtService, BasketRepository basketRepository,
-            MerchantRepository merchantRepository) {
+            MerchantRepository merchantRepository, RefreshTokenService refreshTokenService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
         this.jwtService = jwtService;
         this.basketRepository = basketRepository;
         this.merchantRepository = merchantRepository;
+        this.refreshTokenService = refreshTokenService;
     }
 
     @Transactional
@@ -96,8 +100,31 @@ public class AuthService {
         User user = userRepository.findByEmail(dto.getEmail())
                 .orElseThrow();
 
-        String jwtToken = jwtService.generateToken(user);
-        return new AuthResponseDto(jwtToken);
+        String accessToken = jwtService.generateToken(user);
+        String refreshToken = refreshTokenService.createRefreshToken(user.getEmail());
+        return new AuthResponseDto(accessToken, refreshToken);
+    }
+
+    public AuthResponseDto refreshTokens(String requestRefreshToken) {
+        String email = refreshTokenService.getEmailBtyToken(requestRefreshToken);
+        if (email == null) {
+            throw new RuntimeException("Invalid or expired refresh token");
+        }
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (user.getStatus() != Status.ACTIVE) {
+            refreshTokenService.deleteRefreshToken(requestRefreshToken);
+            throw new RuntimeException("User account is locked or disabled");
+        }
+
+        refreshTokenService.deleteRefreshToken(requestRefreshToken);
+
+        String newAccessToken = jwtService.generateToken(user);
+        String newRefreshToken = refreshTokenService.createRefreshToken(email);
+
+        return new AuthResponseDto(newAccessToken, newRefreshToken);
     }
 
     private UserDto mapToDto(User user) {

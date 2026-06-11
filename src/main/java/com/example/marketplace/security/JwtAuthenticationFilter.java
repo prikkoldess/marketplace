@@ -1,7 +1,6 @@
 package com.example.marketplace.security;
 
 import java.io.IOException;
-import java.util.Optional;
 
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -9,9 +8,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
-
-import com.example.marketplace.user.User;
-import com.example.marketplace.user.UserRepository;
 
 import io.jsonwebtoken.Claims;
 import io.micrometer.common.lang.NonNull;
@@ -24,10 +20,8 @@ import jakarta.servlet.http.HttpServletResponse;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
-    private final UserRepository repository;
 
-    public JwtAuthenticationFilter(UserRepository repository, JwtService jwtService) {
-        this.repository = repository;
+    public JwtAuthenticationFilter(JwtService jwtService) {
         this.jwtService = jwtService;
 
     }
@@ -48,27 +42,22 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         try {
             Claims claims = jwtService.extractAllClaims(jwt);
             Long userId = jwtService.extractId(claims);
+            String email = claims.getSubject();
+            String role = jwtService.extractRole(claims);
 
-            if (userId != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+            if (userId != null && userId != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 
                 if (!jwtService.isTokenExpired(claims)) {
-                    Optional<User> optionalUser = repository.findById(userId);
-                    if (optionalUser.isPresent()) {
-                        User user = optionalUser.get();
 
-                        UserPrincipal principal = new UserPrincipal(user);
+                    UserPrincipal principal = new UserPrincipal(userId, email, role);
 
-                        if (principal.isEnabled()) {
+                    UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                            principal,
+                            null,
+                            principal.getAuthorities());
 
-                            UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                                    principal,
-                                    null,
-                                    principal.getAuthorities());
-
-                            authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                            SecurityContextHolder.getContext().setAuthentication(authToken);
-                        }
-                    }
+                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(authToken);
 
                 }
             }

@@ -1,5 +1,7 @@
 package com.example.marketplace.auth;
 
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -8,6 +10,10 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.marketplace.user.dto.CreateBuyerDto;
 import com.example.marketplace.user.dto.CreateUserDto;
 import com.example.marketplace.user.dto.UserDto;
+
+import io.swagger.v3.oas.annotations.Parameter;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 
 @RestController
 @RequestMapping("/auth")
@@ -30,11 +36,37 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public AuthResponseDto login(@RequestBody LoginDto request) {
-        return authService.login(request);
+    public ResponseEntity<AuthResponseDto> login(@RequestBody LoginDto request, HttpServletResponse response) {
+        AuthResponseDto tokens = authService.login(request);
+        Cookie refreshTokenCookie = new Cookie("refresh_token", tokens.getRefreshToken());
+        refreshTokenCookie.setHttpOnly(true);
+        refreshTokenCookie.setSecure(false);
+        refreshTokenCookie.setPath("/auth/refresh");
+        refreshTokenCookie.setMaxAge(7 * 24 * 60 * 60);
+
+        response.addCookie(refreshTokenCookie);
+
+        return ResponseEntity.ok(new AuthResponseDto(tokens.getAccessToken(), null));
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<AuthResponseDto> refreshTokens(
+            @Parameter(hidden = true) @CookieValue(name = "refresh_token", required = true) String refreshToken,
+            HttpServletResponse response) {
+        AuthResponseDto newTokens = authService.refreshTokens(refreshToken);
+        Cookie newRefreshTokenCookie = new Cookie("refresh_token", newTokens.getRefreshToken());
+        newRefreshTokenCookie.setHttpOnly(true);
+        newRefreshTokenCookie.setSecure(false);
+        newRefreshTokenCookie.setPath("/auth/refresh");
+        newRefreshTokenCookie.setMaxAge(7 * 24 * 60 * 60);
+
+        response.addCookie(newRefreshTokenCookie);
+
+        return ResponseEntity.ok(new AuthResponseDto(newTokens.getAccessToken(), null));
     }
 
     @PostMapping("/register/admin")
+
     public UserDto registerAdmin(@RequestBody CreateUserDto request) {
         return authService.registerAdmin(request);
     }
