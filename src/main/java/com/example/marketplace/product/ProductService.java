@@ -125,6 +125,7 @@ public class ProductService {
         product.unlockProduct();
     }
 
+    @Transactional(readOnly = true)
     public List<ProductDto> getAllSellerProduct(Long sellerId) {
         UUID merchantId = getMerchantId(sellerId);
 
@@ -134,6 +135,7 @@ public class ProductService {
                 .toList();
     }
 
+    @Transactional(readOnly = true)
     public List<ProductDto> getAllProducts() {
         return productRepository.findByStatus(ProductStatus.ACTIVE)
                 .stream()

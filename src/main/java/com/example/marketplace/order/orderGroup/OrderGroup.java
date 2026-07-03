@@ -65,4 +65,17 @@ public class OrderGroup {
             order.changeStatus(newStatus);
         }
     }
+
+    public void cancelOrder() {
+        if (this.status == OrderStatus.CANCELLED) {
+            throw new IllegalStateException("The order has already been cancelled.");
+        }
+        this.status = OrderStatus.CANCELLED;
+
+        for (Order order : this.orders) {
+            order.cancelOrders();
+
+        }
+
+    }
 }

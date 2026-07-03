@@ -96,4 +96,7 @@ public class Product {
         }
     }
 
+    public void increaseQuantity(Integer amount) {
+        this.quantity += amount;
+    }
 }

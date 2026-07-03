@@ -77,15 +77,21 @@ public class Order {
 
     public void changeStatus(OrderStatus requestStatus) {
         if (this.status == OrderStatus.DELIVERED || this.status == OrderStatus.SHIPPED) {
-            throw new IllegalStateException("Нельзя отменить уже отправленный или доставленный заказ");
+            throw new IllegalStateException("An order that has already been shipped or delivered cannot be cancelled.");
         }
         this.status = requestStatus;
     }
 
-    public void cancelOrder() {
+    public void cancelOrders() {
         if (this.status == OrderStatus.DELIVERED || this.status == OrderStatus.SHIPPED) {
-            throw new IllegalStateException("Нельзя отменить уже отправленный или доставленный заказ");
+            throw new IllegalStateException("An order that has already been shipped or delivered cannot be cancelled.");
         }
         this.status = OrderStatus.CANCELLED;
+
+        for (OrderItem item : this.items) {
+            item.returnToTheWarehouse();
+        }
+
     }
+
 }

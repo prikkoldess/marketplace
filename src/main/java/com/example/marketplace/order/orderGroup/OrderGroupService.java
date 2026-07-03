@@ -1,10 +1,17 @@
 package com.example.marketplace.order.orderGroup;
 
 import java.util.List;
+import java.util.UUID;
 
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.marketplace.Merchant.Merchant;
+import com.example.marketplace.config.RabbitMQConfig;
+import com.example.marketplace.notification.order.CancelOrderNotificationDto;
+import com.example.marketplace.order.Order;
 import com.example.marketplace.order.dto.CheckoutGroupDto;
 import com.example.marketplace.order.dto.OrderItemDto;
 import com.example.marketplace.product.Product;
@@ -13,9 +20,11 @@ import com.example.marketplace.product.Product;
 public class OrderGroupService {
 
     private final OrderGroupRepository orderGroupRepository;
+    private final RabbitTemplate rabbitTemplate;
 
-    public OrderGroupService(OrderGroupRepository orderGroupRepository) {
+    public OrderGroupService(OrderGroupRepository orderGroupRepository, RabbitTemplate rabbitTemplate) {
         this.orderGroupRepository = orderGroupRepository;
+        this.rabbitTemplate = rabbitTemplate;
     }
 
     @Transactional
@@ -44,5 +53,26 @@ public class OrderGroupService {
         dto.setTotalAmount(orderGroup.getTotalAmount());
         dto.setStatus(orderGroup.getStatus());
         return dto;
+    }
+
+    @Transactional
+    public void cancelOrder(UUID orderId, Long userId) {
+        OrderGroup order = orderGroupRepository.findById(orderId)
+                .orElseThrow(() -> new IllegalArgumentException("Order not found"));
+
+        if (!order.getBuyer().getId().equals(userId)) {
+            throw new AccessDeniedException("You cannot cancel someone else's order.");
+        }
+
+        order.cancelOrder();
+        for (Order orders : order.getOrders()) {
+            Merchant merchant = orders.getMerchant();
+            CancelOrderNotificationDto dto = new CancelOrderNotificationDto(
+                    merchant.getId(),
+                    UUID.randomUUID(),
+                    orders.getId());
+
+            rabbitTemplate.convertAndSend(RabbitMQConfig.EXCHANGE_ORDER, RabbitMQConfig.ROUTING_KEY_CANCEL_ORDER, dto);
+        }
     }
 }

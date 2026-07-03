@@ -47,4 +47,8 @@ public class OrderItem {
         this.priceAtPurchase = product.getPrice();
 
     }
+
+    public void returnToTheWarehouse() {
+        this.product.increaseQuantity(this.quantity);
+    }
 }

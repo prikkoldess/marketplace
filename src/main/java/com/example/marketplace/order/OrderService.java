@@ -130,7 +130,6 @@ public class OrderService {
             itemDto.setPriceAtPurchase(item.getPriceAtPurchase());
             return itemDto;
         }).toList();
-        dto.setOrderGroupId(order.getOrderGroup().getId());
         dto.setTotalAmount(order.getTotalAmount());
         dto.setStatus(order.getStatus());
         dto.setItems(itemDtos);
