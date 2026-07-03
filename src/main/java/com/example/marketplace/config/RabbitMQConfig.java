@@ -24,6 +24,17 @@ public class RabbitMQConfig {
     public static final String EXCHANGE_PRODUCT_EVENT_DELAY = "product.event.delay.exchange";
     public static final String ROUTING_KEY_PRODUCT_EVENT_DELAY = "product.event.delay.routing.key";
 
+    /////// ORDER EXCHANGE //////
+
+    public static final String QUEUE_CANCEL_ORDER = "cancel.order.queue";
+    public static final String EXCHANGE_ORDER = "order.exchange";
+    public static final String ROUTING_KEY_CANCEL_ORDER = "cancel.order.routing.key";
+
+    @Bean
+    public MessageConverter jsonMassConverter() {
+        return new Jackson2JsonMessageConverter();
+    }
+
     @Bean
     public Queue priceDropQueue() {
         return new Queue(QUEUE_PRICE_DROP, true);
@@ -50,11 +61,6 @@ public class RabbitMQConfig {
     }
 
     @Bean
-    public MessageConverter jsonMassConverter() {
-        return new Jackson2JsonMessageConverter();
-    }
-
-    @Bean
     public DirectExchange productEventDelayExchange() {
         return new DirectExchange(EXCHANGE_PRODUCT_EVENT_DELAY);
     }
@@ -72,5 +78,22 @@ public class RabbitMQConfig {
     public Binding productEventDelayBinding() {
         return BindingBuilder.bind(productEventDelayQueue()).to(productEventDelayExchange())
                 .with(ROUTING_KEY_PRODUCT_EVENT_DELAY);
+    }
+
+    /////// ORDER EXCHANGE //////
+
+    @Bean
+    public Queue cancelOrder() {
+        return new Queue(QUEUE_CANCEL_ORDER, true);
+    }
+
+    @Bean
+    public DirectExchange orderExchange() {
+        return new DirectExchange(EXCHANGE_ORDER);
+    }
+
+    @Bean
+    public Binding cancelOrderBinding() {
+        return BindingBuilder.bind(cancelOrder()).to(orderExchange()).with(ROUTING_KEY_CANCEL_ORDER);
     }
 }
