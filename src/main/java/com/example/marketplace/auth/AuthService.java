@@ -57,12 +57,11 @@ public class AuthService {
                 throw new IllegalArgumentException("You must provide the company name or invitation code.");
             }
 
-            Merchant merchant = new Merchant();
-            merchant.setName(dto.getMerchantName());
-            merchant.setInviteCode("SHOP-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase());
+            String inviteCode = "SHOP-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+            Merchant merchant = new Merchant(dto.getMerchantName(), inviteCode);
             Merchant savedmerchant = merchantRepository.save(merchant);
 
-            seller.setMerchant(merchant);
+            seller.setMerchant(savedmerchant);
         }
 
         User savedUser = userRepository.save(seller);

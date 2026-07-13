@@ -45,7 +45,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String email = claims.getSubject();
             String role = jwtService.extractRole(claims);
 
-            if (userId != null && userId != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+            if (userId != null && email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 
                 if (!jwtService.isTokenExpired(claims)) {
 

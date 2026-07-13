@@ -9,11 +9,11 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.Getter;
-import lombok.Setter;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Getter
-@Setter
+@NoArgsConstructor
 @Table(name = "merchants")
 public class Merchant {
     @Id
@@ -26,4 +26,12 @@ public class Merchant {
     @Column(unique = true)
     private String inviteCode;
 
+    public Merchant(String name, String inviteCode) {
+        this.name = name;
+        this.inviteCode = inviteCode;
+    }
+
+    public void regenerateInviteCode() {
+        this.inviteCode = "SHOP-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+    }
 }

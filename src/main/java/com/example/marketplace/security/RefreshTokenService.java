@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 public class RefreshTokenService {
     private final StringRedisTemplate redisTemplate;
     private final static long REFRESH_TOKEN_EXPIRATION_DAYS = 7;
-    private final static String REDIS_PREFIX = "refreshToken";
+    private final static String REDIS_PREFIX = "refreshToken:";
 
     public RefreshTokenService(StringRedisTemplate redisTemplate) {
         this.redisTemplate = redisTemplate;
