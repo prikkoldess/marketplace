@@ -1,0 +1,108 @@
+name: Marketplace CI/CD 
+
+on:
+  push:
+    branches: ["main"]
+  pull_request: 
+    branches: ["main"]
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: ci_test_db
+          POSTGRES_USER: ci_test_user
+          POSTGRES_PASSWORD: ci_super_secret_password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+          
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+          
+      rabbitmq:
+        image: rabbitmq:3-management-alpine
+        ports:
+          - 5672:5672
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up JDK 21
+      uses: actions/setup-java@v4
+      with:
+        java-version: '21'
+        distribution: 'temurin'
+        cache: 'maven'
+
+    - name: Make mvnw executable
+      run: chmod +x ./mvnw
+
+    - name: Build and Test with Maven
+      env:
+        
+        SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/ci_test_db
+        SPRING_DATASOURCE_USERNAME: ci_test_user
+        SPRING_DATASOURCE_PASSWORD: ci_super_secret_password
+        JWT_SECRET_KEY: test_secret_key_1234567890b2tlbi1nZW5lcmF0aW
+        SPRING_RABBITMQ_HOST: localhost
+        SPRING_DATA_REDIS_HOST: localhost
+      run: ./mvnw clean verify
+
+    - name: Upload Test Report
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: jacoco-report
+        path: target/site/jacoco/
+        retention-days: 7
+
+  docker-build-push:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Log in to GitHub Container Registry 
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Extract metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        
+        images: ghcr.io/${{ github.repository }}/marketplace-app
+
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: ./docker/app/Dockerfile
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
