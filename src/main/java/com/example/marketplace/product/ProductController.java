@@ -2,8 +2,12 @@ package com.example.marketplace.product;
 
 import com.example.marketplace.security.UserPrincipal;
 
-import java.util.List;
+import jakarta.validation.Valid;
 
+import org.springdoc.core.annotations.ParameterObject;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -33,7 +37,7 @@ public class ProductController {
 
     @PostMapping
     @PreAuthorize("hasRole('SELLER')")
-    public ProductDto createProduct(@RequestBody ProductCreateDto request,
+    public ProductDto createProduct(@Valid @RequestBody ProductCreateDto request,
             @AuthenticationPrincipal UserPrincipal seller) {
         Long sellerId = seller.getId();
         return productService.createProduct(request, sellerId);
@@ -49,21 +53,22 @@ public class ProductController {
     @PatchMapping("/{id}")
     @PreAuthorize("hasRole('SELLER')")
     public ProductDto updateProduct(@PathVariable Long id, @AuthenticationPrincipal UserPrincipal seller,
-            @RequestBody ProductUpdateDto dto) {
+            @Valid @RequestBody ProductUpdateDto dto) {
         Long sellerId = seller.getId();
         return productService.updateProduct(id, sellerId, dto);
     }
 
     @GetMapping
-    public List<ProductDto> getAllProduct() {
-        return productService.getAllProducts();
+    public Page<ProductDto> getAllProducts(@ParameterObject @PageableDefault(size = 20, page = 0) Pageable pageable) {
+        return productService.getAllProducts(pageable);
     }
 
     @GetMapping("/my")
     @PreAuthorize("hasRole('SELLER')")
-    public List<ProductDto> getAllSellerProduct(@AuthenticationPrincipal UserPrincipal principal) {
+    public Page<ProductDto> getAllSellerProduct(@AuthenticationPrincipal UserPrincipal principal,
+            @ParameterObject @PageableDefault(size = 20, page = 0) Pageable pageable) {
         Long sellerId = principal.getId();
-        return productService.getAllSellerProduct(sellerId);
+        return productService.getAllSellerProduct(sellerId, pageable);
     }
 
     @PostMapping("/{id}/unlock")

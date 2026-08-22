@@ -1,16 +1,14 @@
 package com.example.marketplace.product;
 
 import java.math.BigDecimal;
-import java.util.List;
 import java.util.UUID;
-
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import com.example.marketplace.config.RabbitMQConfig;
-
-import com.example.marketplace.notification.ProductEventDto;
+import com.example.marketplace.notification.price.ProductEventDto;
 import com.example.marketplace.product.dto.ProductCreateDto;
 import com.example.marketplace.product.dto.ProductDto;
 import com.example.marketplace.product.dto.ProductUpdateDto;
@@ -42,6 +40,7 @@ public class ProductService {
         return seller.getMerchant().getId();
     }
 
+    @Transactional
     public ProductDto createProduct(ProductCreateDto dto, Long sellerId) {
         User seller = userRepository.findById(sellerId)
                 .orElseThrow(() -> new IllegalArgumentException("Seller not found"));
@@ -64,23 +63,9 @@ public class ProductService {
     }
 
     @Transactional
-    public void deleteProductByAdmin(Long productId) {
-        Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new IllegalArgumentException("Product not found"));
-        productRepository.delete(product);
-    }
-
-    @Transactional
     public void hideProduct(Long productId, Long sellerId) {
         UUID merchantId = getMerchantId(sellerId);
         Product product = productRepository.findByIdAndMerchantId(productId, merchantId)
-                .orElseThrow(() -> new IllegalArgumentException("Product not found"));
-        product.hideProduct();
-    }
-
-    @Transactional
-    public void hideProductByAdmin(Long productId) {
-        Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new IllegalArgumentException("Product not found"));
         product.hideProduct();
     }
@@ -118,29 +103,42 @@ public class ProductService {
         product.unlockProduct();
     }
 
+    @Transactional(readOnly = true)
+    public Page<ProductDto> getAllSellerProduct(Long sellerId, Pageable pageable) {
+        UUID merchantId = getMerchantId(sellerId);
+
+        return productRepository.findByMerchantId(merchantId, pageable)
+                .map(this::mapToDto);
+
+    }
+
+    @Transactional(readOnly = true)
+    public Page<ProductDto> getAllProducts(Pageable pageable) {
+        return productRepository.findByStatus(ProductStatus.ACTIVE, pageable)
+                .map(this::mapToDto);
+
+    }
+
+    ////// ADMIN////
+    @Transactional
+    public void deleteProductByAdmin(Long productId) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new IllegalArgumentException("Product not found"));
+        productRepository.delete(product);
+    }
+
+    @Transactional
+    public void hideProductByAdmin(Long productId) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new IllegalArgumentException("Product not found"));
+        product.hideProduct();
+    }
+
     @Transactional
     public void unlockProductByAdmin(Long productId) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new IllegalArgumentException("Product not found"));
         product.unlockProduct();
-    }
-
-    @Transactional(readOnly = true)
-    public List<ProductDto> getAllSellerProduct(Long sellerId) {
-        UUID merchantId = getMerchantId(sellerId);
-
-        return productRepository.findByMerchantId(merchantId)
-                .stream()
-                .map(this::mapToDto)
-                .toList();
-    }
-
-    @Transactional(readOnly = true)
-    public List<ProductDto> getAllProducts() {
-        return productRepository.findByStatus(ProductStatus.ACTIVE)
-                .stream()
-                .map(this::mapToDto)
-                .toList();
     }
 
     private ProductDto mapToDto(Product product) {

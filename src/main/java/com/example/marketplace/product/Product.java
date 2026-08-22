@@ -2,7 +2,8 @@ package com.example.marketplace.product;
 
 import java.math.BigDecimal;
 
-import com.example.marketplace.Merchant.Merchant;
+import com.example.marketplace.merchant.Merchant;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
