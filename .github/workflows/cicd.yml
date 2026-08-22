@@ -47,7 +47,7 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Set up JDK 21
-      uses: actions/setup-java@v4
+      uses: actions/setup-java@v5
       with:
         java-version: '21'
         distribution: 'temurin'
@@ -65,6 +65,10 @@ jobs:
         JWT_SECRET_KEY: test_secret_key_1234567890b2tlbi1nZW5lcmF0aW
         SPRING_RABBITMQ_HOST: localhost
         SPRING_DATA_REDIS_HOST: localhost
+        ADMIN_FIRST_NAME: Super
+        ADMIN_LAST_NAME: Admin
+        ADMIN_EMAIL: admin@marketplace.com
+        ADMIN_PASSWORD: super_secret_admin_pass
       run: ./mvnw clean verify
 
     - name: Upload Test Report
