@@ -8,10 +8,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.example.marketplace.Merchant.Merchant;
-import com.example.marketplace.Merchant.MerchantRepository;
+import com.example.marketplace.admin.CreateAdminDto;
 import com.example.marketplace.basket.Basket;
 import com.example.marketplace.basket.BasketRepository;
+import com.example.marketplace.merchant.Merchant;
+import com.example.marketplace.merchant.MerchantRepository;
 import com.example.marketplace.security.JwtService;
 import com.example.marketplace.security.RefreshTokenService;
 import com.example.marketplace.user.Status;
@@ -69,16 +70,6 @@ public class AuthService {
     }
 
     @Transactional
-    public UserDto registerAdmin(CreateUserDto dto) {
-        String passwordHash = passwordEncoder.encode(dto.getPassword());
-
-        User admin = User.registerAdmin(dto.getFirstName(), dto.getLastName(), dto.getEmail(), passwordHash);
-        User savedAdmin = userRepository.save(admin);
-
-        return mapToDto(savedAdmin);
-    }
-
-    @Transactional
     public UserDto registerBuyer(CreateBuyerDto dto) {
         String passwordHash = passwordEncoder.encode(dto.getPassword());
 
@@ -90,6 +81,7 @@ public class AuthService {
         return mapToDto(savedBuyer);
     }
 
+    @Transactional(readOnly = true)
     public AuthResponseDto login(LoginDto dto) {
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
@@ -104,6 +96,16 @@ public class AuthService {
         return new AuthResponseDto(accessToken, refreshToken);
     }
 
+    @Transactional
+    public UserDto registerAdmin(CreateAdminDto dto) {
+        String passwordHash = passwordEncoder.encode(dto.getPassword());
+
+        User admin = User.registerAdmin(dto.getFirstName(), dto.getLastName(), dto.getEmail(), passwordHash);
+        User savedAdmin = userRepository.save(admin);
+
+        return mapToDto(savedAdmin);
+    }
+
     public AuthResponseDto refreshTokens(String requestRefreshToken) {
         String email = refreshTokenService.getEmailBtyToken(requestRefreshToken);
         if (email == null) {
@@ -111,7 +113,7 @@ public class AuthService {
         }
 
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
         if (user.getStatus() != Status.ACTIVE) {
             refreshTokenService.deleteRefreshToken(requestRefreshToken);
