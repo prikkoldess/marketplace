@@ -3,7 +3,8 @@ package com.example.marketplace.order;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
-import com.example.marketplace.Merchant.Merchant;
+
+import com.example.marketplace.merchant.Merchant;
 import com.example.marketplace.order.orderGroup.OrderGroup;
 import com.example.marketplace.order.orderItem.OrderItem;
 import com.example.marketplace.product.Product;
@@ -87,10 +88,6 @@ public class Order {
             throw new IllegalStateException("An order that has already been shipped or delivered cannot be cancelled.");
         }
         this.status = OrderStatus.CANCELLED;
-
-        for (OrderItem item : this.items) {
-            item.returnToTheWarehouse();
-        }
 
     }
 

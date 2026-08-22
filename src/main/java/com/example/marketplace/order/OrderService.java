@@ -9,10 +9,10 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.example.marketplace.Merchant.Merchant;
 import com.example.marketplace.basket.Basket;
 import com.example.marketplace.basket.BasketRepository;
 import com.example.marketplace.basket.basketItem.BasketItem;
+import com.example.marketplace.merchant.Merchant;
 import com.example.marketplace.order.dto.OrderDto;
 import com.example.marketplace.order.dto.OrderItemDto;
 import com.example.marketplace.order.orderGroup.OrderGroup;
@@ -84,7 +84,7 @@ public class OrderService {
     }
 
     @Transactional
-    public void updateOrderStatus(OrderStatus newStatus, Long orderId, Long sellerId) {
+    public void updateOrderStatus(OrderStatus newStatus, UUID orderId, Long sellerId) {
         User seller = userRepository.findById(sellerId)
                 .orElseThrow(() -> new IllegalArgumentException("Seller not found"));
         Order order = orderRepository.findById(orderId)
@@ -99,7 +99,7 @@ public class OrderService {
     }
 
     @Transactional
-    public void updateOrderStatusForAdmin(OrderStatus newStatus, Long orderId, Long sellerId) {
+    public void updateOrderStatusByAdmin(OrderStatus newStatus, UUID orderId, Long sellerId) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new IllegalArgumentException("Order not found"));
 

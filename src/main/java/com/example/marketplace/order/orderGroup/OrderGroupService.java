@@ -8,26 +8,30 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.example.marketplace.Merchant.Merchant;
 import com.example.marketplace.config.RabbitMQConfig;
+import com.example.marketplace.merchant.Merchant;
 import com.example.marketplace.notification.order.CancelOrderNotificationDto;
 import com.example.marketplace.order.Order;
 import com.example.marketplace.order.dto.CheckoutGroupDto;
 import com.example.marketplace.order.dto.OrderItemDto;
 import com.example.marketplace.product.Product;
+import com.example.marketplace.product.ProductRepository;
 
 @Service
 public class OrderGroupService {
 
     private final OrderGroupRepository orderGroupRepository;
     private final RabbitTemplate rabbitTemplate;
+    private final ProductRepository productRepository;
 
-    public OrderGroupService(OrderGroupRepository orderGroupRepository, RabbitTemplate rabbitTemplate) {
+    public OrderGroupService(OrderGroupRepository orderGroupRepository, RabbitTemplate rabbitTemplate,
+            ProductRepository productRepository) {
         this.orderGroupRepository = orderGroupRepository;
         this.rabbitTemplate = rabbitTemplate;
+        this.productRepository = productRepository;
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public List<CheckoutGroupDto> getBuyersOrder(Long buyerId) {
         List<OrderGroup> orders = orderGroupRepository.findByBuyerId(buyerId);
         return orders.stream()
@@ -64,7 +68,20 @@ public class OrderGroupService {
             throw new AccessDeniedException("You cannot cancel someone else's order.");
         }
 
+        List<Long> productIds = order.getOrders().stream()
+                .flatMap(o -> o.getItems().stream())
+                .map(item -> item.getProduct().getId())
+                .distinct()
+                .sorted()
+                .toList();
+
+        for (Long productId : productIds) {
+            productRepository.findByIdWithLock(productId)
+                    .orElseThrow(() -> new IllegalArgumentException("Product not found: " + productId));
+        }
+
         order.cancelOrder();
+
         for (Order orders : order.getOrders()) {
             Merchant merchant = orders.getMerchant();
             CancelOrderNotificationDto dto = new CancelOrderNotificationDto(

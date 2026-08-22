@@ -10,12 +10,12 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface OrderRepository extends JpaRepository<Order, Long> {
+public interface OrderRepository extends JpaRepository<Order, UUID> {
     List<Order> findByBuyerId(Long buyerId);
 
     List<Order> findByOrderGroupIdAndBuyerId(UUID orderGroupId, Long buyerId);
 
-    @EntityGraph(attributePaths = { "items" })
+    @EntityGraph(attributePaths = { "items", "items.product" })
     @Query("SELECT o FROM Order o WHERE o.merchant.id = :merchantId")
     List<Order> findOrdersByMerchantId(@Param("merchantId") UUID merchantId);
 }
