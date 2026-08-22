@@ -77,4 +77,5 @@ public class UserTest {
 
         assertEquals(Status.ACTIVE, user.getStatus());
     }
+
 }

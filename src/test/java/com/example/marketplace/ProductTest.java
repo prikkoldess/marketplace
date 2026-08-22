@@ -7,7 +7,7 @@ import java.math.BigDecimal;
 
 import org.junit.jupiter.api.Test;
 
-import com.example.marketplace.Merchant.Merchant;
+import com.example.marketplace.merchant.Merchant;
 import com.example.marketplace.product.Product;
 import com.example.marketplace.product.ProductStatus;
 import com.example.marketplace.user.User;

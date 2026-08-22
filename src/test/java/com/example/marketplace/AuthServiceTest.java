@@ -15,11 +15,12 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import com.example.marketplace.Merchant.Merchant;
-import com.example.marketplace.Merchant.MerchantRepository;
+import com.example.marketplace.admin.CreateAdminDto;
 import com.example.marketplace.auth.AuthService;
 import com.example.marketplace.basket.Basket;
 import com.example.marketplace.basket.BasketRepository;
+import com.example.marketplace.merchant.Merchant;
+import com.example.marketplace.merchant.MerchantRepository;
 import com.example.marketplace.user.Role;
 import com.example.marketplace.user.Status;
 import com.example.marketplace.user.User;
@@ -105,7 +106,7 @@ public class AuthServiceTest {
 
     @Test
     void registerAdmin() {
-        CreateUserDto dto = new CreateUserDto();
+        CreateAdminDto dto = new CreateAdminDto();
         dto.setFirstName("Jon");
         dto.setLastName("Derek");
         dto.setEmail("admin@gmail.com");

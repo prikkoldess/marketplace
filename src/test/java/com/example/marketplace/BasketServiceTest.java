@@ -22,6 +22,7 @@ import com.example.marketplace.basket.Basket;
 import com.example.marketplace.basket.BasketRepository;
 import com.example.marketplace.basket.BasketService;
 import com.example.marketplace.basket.dto.BasketDto;
+import com.example.marketplace.merchant.Merchant;
 import com.example.marketplace.product.Product;
 import com.example.marketplace.product.ProductRepository;
 import com.example.marketplace.user.User;
@@ -52,7 +53,8 @@ public class BasketServiceTest {
         Long productId = 5L;
         Long buyerId = 1L;
         Integer quantity = 10;
-        Product product = mock(Product.class);
+        Merchant merchant = mock(Merchant.class);
+        Product product = new Product("Apple", new BigDecimal("100.0"), quantity, merchant);
 
         when(basketRepository.findByBuyerId(buyerId)).thenReturn(Optional.of(basket));
         when(productRepository.findById(productId)).thenReturn(Optional.of(product));

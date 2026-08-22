@@ -10,7 +10,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
 import com.example.marketplace.product.Product;
 import com.example.marketplace.product.ProductRepository;
 import com.example.marketplace.user.Status;
@@ -66,7 +65,7 @@ public class UserServiceTest {
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         assertEquals(Status.ACTIVE, user.getStatus());
 
-        userService.blockUser(userId);
+        userService.blockUserByAdmin(userId);
 
         assertEquals(Status.BLOCKED, user.getStatus());
     }
@@ -76,10 +75,10 @@ public class UserServiceTest {
         Long userId = 1L;
         User user = new User();
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        userService.blockUser(userId);
+        userService.blockUserByAdmin(userId);
         assertEquals(Status.BLOCKED, user.getStatus());
 
-        userService.activateUser(userId);
+        userService.activateUserByAdmin(userId);
 
         assertEquals(Status.ACTIVE, user.getStatus());
     }

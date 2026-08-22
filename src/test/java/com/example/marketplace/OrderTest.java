@@ -9,7 +9,7 @@ import java.math.BigDecimal;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import com.example.marketplace.Merchant.Merchant;
+import com.example.marketplace.merchant.Merchant;
 import com.example.marketplace.order.Order;
 import com.example.marketplace.order.OrderStatus;
 import com.example.marketplace.product.Product;

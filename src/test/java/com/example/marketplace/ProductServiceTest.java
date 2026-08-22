@@ -18,13 +18,14 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.example.marketplace.Merchant.Merchant;
+import com.example.marketplace.merchant.Merchant;
 import com.example.marketplace.product.Product;
 import com.example.marketplace.product.ProductRepository;
 import com.example.marketplace.product.ProductService;
 import com.example.marketplace.product.ProductStatus;
 import com.example.marketplace.product.dto.ProductCreateDto;
 import com.example.marketplace.product.dto.ProductDto;
+import com.example.marketplace.product.dto.ProductUpdateDto;
 import com.example.marketplace.user.Role;
 import com.example.marketplace.user.User;
 import com.example.marketplace.user.UserRepository;
@@ -104,5 +105,28 @@ public class ProductServiceTest {
         productService.hideProduct(productId, sellerId);
 
         assertEquals(ProductStatus.BLOCKED, product.getStatus());
+    }
+
+    @Test
+    void updateProduct() {
+        Long productId = 1L;
+        Long sellerId = 1L;
+        UUID merchantId = UUID.randomUUID();
+        ProductUpdateDto productUpdateDto = new ProductUpdateDto(10, new BigDecimal("100.00"));
+        Product product = new Product("Apple", new BigDecimal("50.00"), 2, merchant);
+        when(productRepository.findByIdAndMerchantId(sellerId, merchantId)).thenReturn(Optional.of(product));
+        when(merchant.getId()).thenReturn(merchantId);
+        when(userRepository.findById(sellerId)).thenReturn(Optional.of(user));
+        when(user.getMerchant()).thenReturn(merchant);
+        when(productRepository.save(any(Product.class))).thenAnswer(i -> i.getArgument(0));
+
+        assertEquals(new BigDecimal("50.00"), product.getPrice());
+        assertEquals(2, product.getQuantity());
+
+        productService.updateProduct(productId, sellerId, productUpdateDto);
+
+        assertEquals(new BigDecimal("100.00"), product.getPrice());
+        assertEquals(10, product.getQuantity());
+
     }
 }

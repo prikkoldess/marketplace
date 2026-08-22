@@ -19,9 +19,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.example.marketplace.Merchant.Merchant;
 import com.example.marketplace.basket.Basket;
 import com.example.marketplace.basket.BasketRepository;
+import com.example.marketplace.merchant.Merchant;
 import com.example.marketplace.order.Order;
 import com.example.marketplace.order.OrderRepository;
 import com.example.marketplace.order.OrderService;
@@ -75,7 +75,7 @@ public class OrderServiceTest {
 
     @Test
     void updateOrderStatus() {
-        Long orderId = 10L;
+        UUID orderId = UUID.randomUUID();
         Long sellerId = 1L;
         Merchant merchant = mock(Merchant.class);
         UUID merchantId = UUID.randomUUID();
