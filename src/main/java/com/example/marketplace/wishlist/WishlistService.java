@@ -3,6 +3,7 @@ package com.example.marketplace.wishlist;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class WishlistService {
@@ -12,6 +13,7 @@ public class WishlistService {
         this.wishlistRepository = wishlistRepository;
     }
 
+    @Transactional(readOnly = true)
     public List<WishlistDto> getWishListItems(Long buyerId) {
         List<Wishlist> wishlist = wishlistRepository.findByBuyerId(buyerId);
 

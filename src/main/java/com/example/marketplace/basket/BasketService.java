@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.marketplace.basket.basketItem.BasketItem;
 import com.example.marketplace.basket.dto.AdminBasketDto;
 import com.example.marketplace.basket.dto.BasketDto;
 import com.example.marketplace.basket.dto.BasketItemDto;
@@ -22,12 +23,22 @@ public class BasketService {
         this.productRepository = productRepository;
     }
 
+    @Transactional
     public void addToBasket(Long buyerId, Long productId, Integer quantity) {
         Basket basket = basketRepository.findByBuyerId(buyerId)
                 .orElseThrow(() -> new IllegalArgumentException("Basket not found"));
 
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new IllegalArgumentException("Product not found"));
+
+        int quantityAlreadyInBasket = basket.getItems().stream()
+                .filter(item -> item.getProduct().getId().equals(productId)).map(BasketItem::getQuantity).findFirst()
+                .orElse(0);
+
+        if (product.getQuantity() < (quantity + quantityAlreadyInBasket)) {
+            throw new IllegalStateException("Not enough stock. You already have "
+                    + quantityAlreadyInBasket + " in basket. Available total: " + product.getQuantity());
+        }
 
         basket.addItem(product, quantity);
         basketRepository.save(basket);
@@ -39,18 +50,19 @@ public class BasketService {
         return mapToDto(basket);
     }
 
-    public AdminBasketDto getUserBasketForAdmin(Long userId) {
-        Basket user = basketRepository.findByBuyerId(userId)
-                .orElseThrow(() -> new IllegalArgumentException("Basket not found"));
-        return mapToAdminDto(user);
-
-    }
-
     @Transactional
     public void deleteProductItem(Long buyerId, Long productId) {
         Basket basket = basketRepository.findByBuyerId(buyerId)
                 .orElseThrow(() -> new IllegalArgumentException("Basket not found"));
         basket.deleteProductItem(productId);
+
+    }
+
+    ///// ADMIN/////
+    public AdminBasketDto getUserBasketByAdmin(Long userId) {
+        Basket basket = basketRepository.findByBuyerId(userId)
+                .orElseThrow(() -> new IllegalArgumentException("Basket not found"));
+        return mapToAdminDto(basket);
 
     }
 

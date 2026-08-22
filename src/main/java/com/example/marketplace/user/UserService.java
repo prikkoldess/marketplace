@@ -42,8 +42,10 @@ public class UserService {
 
     }
 
+    ///// ADMIN/////
+
     @Transactional
-    public void blockUser(Long userId) {
+    public void blockUserByAdmin(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
@@ -51,7 +53,7 @@ public class UserService {
     }
 
     @Transactional
-    public void activateUser(Long userId) {
+    public void activateUserByAdmin(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 

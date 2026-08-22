@@ -3,7 +3,7 @@ package com.example.marketplace.user;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.example.marketplace.Merchant.Merchant;
+import com.example.marketplace.merchant.Merchant;
 import com.example.marketplace.product.Product;
 import com.example.marketplace.wishlist.Wishlist;
 
