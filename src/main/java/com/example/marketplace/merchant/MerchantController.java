@@ -1,6 +1,5 @@
 package com.example.marketplace.merchant;
 
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -20,11 +19,8 @@ public class MerchantController {
 
     @PostMapping("/invite-code/regenerate")
     @PreAuthorize("hasRole('SELLER')")
-    public ResponseEntity<String> regenerateInviteCode(@AuthenticationPrincipal UserPrincipal user) {
-
+    public String regenerateInviteCode(@AuthenticationPrincipal UserPrincipal user) {
         Long userId = user.getId();
-        String newCode = merchantService.regenerateInviteCode(userId);
-
-        return ResponseEntity.ok(newCode);
+        return merchantService.regenerateInviteCode(userId);
     }
 }

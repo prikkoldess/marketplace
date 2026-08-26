@@ -1,6 +1,5 @@
 package com.example.marketplace.auth;
 
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -38,7 +37,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponseDto> login(@Valid @RequestBody LoginDto request, HttpServletResponse response) {
+    public AuthResponseDto login(@Valid @RequestBody LoginDto request, HttpServletResponse response) {
         AuthResponseDto tokens = authService.login(request);
         Cookie refreshTokenCookie = new Cookie("refresh_token", tokens.getRefreshToken());
         refreshTokenCookie.setHttpOnly(true);
@@ -48,7 +47,7 @@ public class AuthController {
 
         response.addCookie(refreshTokenCookie);
 
-        return ResponseEntity.ok(new AuthResponseDto(tokens.getAccessToken(), null));
+        return new AuthResponseDto(tokens.getAccessToken(), null);
     }
 
     @PostMapping("/register/admin")
@@ -57,7 +56,7 @@ public class AuthController {
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<AuthResponseDto> refreshTokens(
+    public AuthResponseDto refreshTokens(
             @Parameter(hidden = true) @CookieValue(name = "refresh_token", required = true) String refreshToken,
             HttpServletResponse response) {
         AuthResponseDto newTokens = authService.refreshTokens(refreshToken);
@@ -69,7 +68,7 @@ public class AuthController {
 
         response.addCookie(newRefreshTokenCookie);
 
-        return ResponseEntity.ok(new AuthResponseDto(newTokens.getAccessToken(), null));
+        return new AuthResponseDto(newTokens.getAccessToken(), null);
     }
 
 }

@@ -1,8 +1,6 @@
 package com.example.marketplace.order.orderGroup;
 
 import java.util.UUID;
-
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -21,13 +19,9 @@ public class OrderGroupController {
     }
 
     @PostMapping("{id}/cancel")
-    public ResponseEntity<Void> cancelOrder(@PathVariable("id") UUID orderId,
+    public void cancelOrder(@PathVariable("id") UUID orderId,
             @AuthenticationPrincipal UserPrincipal user) {
-
         Long userId = user.getId();
-
         orderGroupService.cancelOrder(orderId, userId);
-
-        return ResponseEntity.ok().build();
     }
 }
