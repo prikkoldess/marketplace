@@ -1,7 +1,9 @@
 package com.example.marketplace.order.orderGroup;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.security.access.AccessDeniedException;
@@ -14,6 +16,7 @@ import com.example.marketplace.notification.order.CancelOrderNotificationDto;
 import com.example.marketplace.order.Order;
 import com.example.marketplace.order.dto.CheckoutGroupDto;
 import com.example.marketplace.order.dto.OrderItemDto;
+import com.example.marketplace.order.orderItem.OrderItem;
 import com.example.marketplace.product.Product;
 import com.example.marketplace.product.ProductRepository;
 
@@ -68,16 +71,20 @@ public class OrderGroupService {
             throw new AccessDeniedException("You cannot cancel someone else's order.");
         }
 
-        List<Long> productIds = order.getOrders().stream()
+        Map<Long, Integer> productQuantities = order.getOrders().stream()
                 .flatMap(o -> o.getItems().stream())
-                .map(item -> item.getProduct().getId())
-                .distinct()
+                .collect(Collectors
+                        .toMap(items -> items.getProduct().getId(), OrderItem::getQuantity, Integer::sum));
+
+        List<Long> sortedProductIds = productQuantities.keySet().stream()
                 .sorted()
                 .toList();
 
-        for (Long productId : productIds) {
-            productRepository.findByIdWithLock(productId)
+        for (Long productId : sortedProductIds) {
+            Product lockedProduct = productRepository.findByIdWithLock(productId)
                     .orElseThrow(() -> new IllegalArgumentException("Product not found: " + productId));
+
+            lockedProduct.increaseQuantity(productQuantities.get(productId));
         }
 
         order.cancelOrder();
